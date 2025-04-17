@@ -25,8 +25,8 @@ class Game:
 
         # Initialises other classes
         self.game_board = Board()
-        self.player_1 = Player(1, "Player 1", (255,0,0), [])
-        self.player_2 = Player(2, "Player 2", (255,255,0), [])
+        self.player_1 = Player(1, "Player 1", (255,0,0), [Tool(0, 0, False, True, False, True), Tool(1, -1, True, False, False, True), Tool(1, -1, True, False, False, True)])
+        self.player_2 = Player(2, "Player 2", (255,255,0), [Tool(0, 0, False, True, False, True), Tool(1, -1, True, False, False, True), Tool(1, -1, True, False, False, True)])
         self.turn_manager = TurnManager(self.game_board, self.position, self.player_1, self.player_2)
         self.event_handler = EventHandler(self)
         self.renderer = Render(self.window, self.square_size, self.background_colour, self.player_1, self.player_2)
@@ -48,22 +48,38 @@ class TurnManager:
         self.selection = 0
         self.players = [player_1, player_2]
         self.current_player = player_1
+        self.tool_index = 0
+        self.special_tool_used = False
 
     def player_turn(self):
         if not self.game_over:
             if self.attempt:
-                if self.game_board.is_valid_location(self.selection):
+                current_tool = self.current_player.tools[self.tool_index]
+                if self.game_board.is_valid_location(self.selection, current_tool):
                     self.game_board.flip_board()
                     # Flip for the purposes of calculations, then flip back
-                    position = self.game_board.get_next_open_row(self.selection)
-                    self.game_board.position_change(position, self.selection, self.current_player.id)
+                    if current_tool.single_tile:
+                        position = self.selection
+                    elif current_tool.requires_empty:
+                        position = self.game_board.get_next_open_row(self.selection[0])
+                    else:
+                        pass
+
+                    self.game_board.position_change(position, self.current_player.id if current_tool.tile_id == 0 else current_tool.tile_id)
                     self.game_board.flip_board()
-                    print(self.game_board.board)
+
+                    if current_tool.single_use:
+                        del self.current_player.tools[self.tool_index] 
+                        self.tool_index = 0
 
                     if self.winning_move(self.game_board.board, self.current_player.id):  
                         self.game_over = True
                     
-                    self.switch_turn()
+                    if current_tool.ends_turn:
+                        self.switch_turn()
+                        self.special_tool_used = False
+                    else:
+                        self.special_tool_used = True
 
              
     # Checks if the last move created a win. this is an absolute garbage algorithm i stole from youtube
@@ -106,17 +122,22 @@ class EventHandler:
                 self.clicks(event)
             if event.type == pygame.MOUSEMOTION:
                 self.mouse_movement(event)
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE and not self.game.turn_manager.special_tool_used:
+                self.switch_tool(self.game.turn_manager.tool_index)
 
     def clicks(self, event):
         if not self.game.turn_manager.game_over:
             self.game.turn_manager.attempt = True
-            self.game.turn_manager.selection = int(event.pos[0]/self.game.square_size)
+            self.game.turn_manager.selection = (int(event.pos[0]/self.game.square_size), Game.ROW_COUNT - int(event.pos[1]/self.game.square_size))
             self.game.turn_manager.player_turn()
             self.game.attempt = False
 
     def mouse_movement(self, event):
         if not self.game.turn_manager.game_over:
             self.game.position = event.pos
+    
+    def switch_tool(self, tool_index):
+        self.game.turn_manager.tool_index = (tool_index + 1) % len(self.game.turn_manager.current_player.tools)
 
 
 # For rendering and graphical type things
@@ -156,19 +177,23 @@ class Board:
     def __init__(self):
         self.board = np.zeros((Game.ROW_COUNT, Game.COLUMN_COUNT))
 
-    def position_change(self, row, col, turn):
-        self.board[row][col] = turn
+    def position_change(self, pos, turn):
+        self.board[pos[1]][pos[0]] = turn
 
-    # Checks whether top row is taken 
-    def is_valid_location(self, col):      
-        print(self.board[0][col] == 0)
-        return self.board[0][col] == 0
+    # Checks whether click location is valid for current tool
+    def is_valid_location(self, pos, tool):      
+        if tool.single_tile:
+            pass
+        elif tool.requires_empty:
+            return self.board[0][pos[0]] == 0
+        else:
+            return True
 
     # Finds position for user selection
     def get_next_open_row(self, col):
         for row in range(Game.ROW_COUNT):
             if self.board[row][col] == 0:
-                return row
+                return (col, row)
 
     def flip_board(self):
         self.board = np.flip(self.board, 0)
@@ -187,23 +212,31 @@ class Disc:
         self.background_colour = background_colour
 
     def get_colour(self):
-        if self.board_value == 0:
+        if self.board_value <= 0:
             self.colour = self.background_colour
         elif self.board_value == 1:
             self.colour = self.players[0].colour
-        else:
+        elif self.board_value == 2:
             self.colour = self.players[1].colour
+        elif self.board_value == 3:
+            self.colour = "white"
     
 
 class Player:
-    def __init__(self, id, player_name, colour, powerups):
+    def __init__(self, id, player_name, colour, tools):
         self.id = id
         self.player_name = player_name
         self.colour = colour
-        self.powerups = powerups
+        self.tools = tools
 
-class Powerup:
-    pass
+class Tool:
+    def __init__(self, id, tile_id, single_use, ends_turn, single_tile, requires_empty):
+        self.id = id
+        self.tile_id = tile_id
+        self.single_use = single_use
+        self.ends_turn = ends_turn
+        self.single_tile = single_tile
+        self.requires_empty = requires_empty
 
 if __name__ == "__main__":
     Game()
