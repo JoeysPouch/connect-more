@@ -25,8 +25,8 @@ class Game:
 
         # Initialises other classes
         self.game_board = Board()
-        self.player_1 = Player(1, "Player 1", (255,0,0), [Tool(0, 0, False, True, False, True), Tool(1, -1, True, False, False, True), Tool(1, -1, True, False, False, True)])
-        self.player_2 = Player(2, "Player 2", (255,255,0), [Tool(0, 0, False, True, False, True), Tool(1, -1, True, False, False, True), Tool(1, -1, True, False, False, True)])
+        self.player_1 = Player(1, "Player 1", (255,0,0), [Tool(0, 0, False, True, False, True), Tool(1, -1, True, False, False, True), Tool(2, 0, True, True, True, True)])
+        self.player_2 = Player(2, "Player 2", (255,255,0), [Tool(0, 0, False, True, False, True), Tool(1, -1, True, False, False, True), Tool(2, 0, True, True, True, True)])
         self.turn_manager = TurnManager(self.game_board, self.position, self.player_1, self.player_2)
         self.event_handler = EventHandler(self)
         self.renderer = Render(self.window, self.square_size, self.background_colour, self.player_1, self.player_2)
@@ -36,7 +36,7 @@ class Game:
     def game_loop(self):
         while True:
             self.event_handler.events()
-            self.renderer.render(self.game_board.board, self.turn_manager.current_player, self.position)
+            self.renderer.render(self.game_board.board, self.turn_manager.current_player, self.position, self.turn_manager.current_player.tools[self.turn_manager.tool_index])
 
 
 class TurnManager:
@@ -59,13 +59,15 @@ class TurnManager:
                     self.game_board.flip_board()
                     # Flip for the purposes of calculations, then flip back
                     if current_tool.single_tile:
-                        position = self.selection
+                        position = (self.selection[0], Game.ROW_COUNT - self.selection[1] - 1)
                     elif current_tool.requires_empty:
                         position = self.game_board.get_next_open_row(self.selection[0])
                     else:
                         pass
 
-                    self.game_board.position_change(position, self.current_player.id if current_tool.tile_id == 0 else current_tool.tile_id)
+                    if current_tool.tile_id >= -1:
+                        self.game_board.position_change(position, self.current_player.id if current_tool.tile_id == 0 else current_tool.tile_id)
+
                     self.game_board.flip_board()
 
                     if current_tool.single_use:
@@ -128,7 +130,7 @@ class EventHandler:
     def clicks(self, event):
         if not self.game.turn_manager.game_over:
             self.game.turn_manager.attempt = True
-            self.game.turn_manager.selection = (int(event.pos[0]/self.game.square_size), Game.ROW_COUNT - int(event.pos[1]/self.game.square_size))
+            self.game.turn_manager.selection = (int(event.pos[0]/self.game.square_size), int(event.pos[1]/self.game.square_size) - 1)
             self.game.turn_manager.player_turn()
             self.game.attempt = False
 
@@ -150,9 +152,9 @@ class Render:
         self.players = [player_1, player_2]
 
 
-    def render(self, board, turn, position):
+    def render(self, board, turn, position, tool):
         self.draw_board(board, turn, position)
-        self.draw_mouse_disc(turn, position)
+        self.draw_mouse_disc(turn, position, tool)
         self.final_render()
 
     def draw_board(self, board, turn, position):
@@ -164,9 +166,13 @@ class Render:
                 self.placed_disc.get_colour()
                 pygame.draw.circle(self.window, self.placed_disc.colour, self.placed_disc.position, self.placed_disc.radius)
 
-    def draw_mouse_disc(self, turn, position):           
-        pygame.draw.circle(self.window, turn.colour, (position[0], Game.SQUARE_SIZE/2), self.disc_size)
-        pygame.draw.circle(self.window, (0,0,0),  (position[0], Game.SQUARE_SIZE/2), self.disc_size, max(int(self.disc_size/20), 1))
+    def draw_mouse_disc(self, turn, position, tool): 
+        if tool.single_tile:         
+            pygame.draw.circle(self.window, turn.colour, position, self.disc_size)
+            pygame.draw.circle(self.window, (0,0,0),  position, self.disc_size, max(int(self.disc_size/20), 1))
+        else:
+            pygame.draw.circle(self.window, turn.colour, (position[0], Game.SQUARE_SIZE/2), self.disc_size)
+            pygame.draw.circle(self.window, (0,0,0),  (position[0], Game.SQUARE_SIZE/2), self.disc_size, max(int(self.disc_size/20), 1))
 
         
     def final_render(self):        
@@ -182,8 +188,11 @@ class Board:
 
     # Checks whether click location is valid for current tool
     def is_valid_location(self, pos, tool):      
-        if tool.single_tile:
-            pass
+        if tool.single_tile and pos[1] >= 0:
+            if tool.requires_empty:
+                return self.board[pos[1]][pos[0]] == 0
+            else:
+                return True
         elif tool.requires_empty:
             return self.board[0][pos[0]] == 0
         else:
@@ -219,7 +228,7 @@ class Disc:
         elif self.board_value == 2:
             self.colour = self.players[1].colour
         elif self.board_value == 3:
-            self.colour = "white"
+            self.colour = "white" # this should maybe be based on background colour instead?
     
 
 class Player:
@@ -232,7 +241,7 @@ class Player:
 class Tool:
     def __init__(self, id, tile_id, single_use, ends_turn, single_tile, requires_empty):
         self.id = id
-        self.tile_id = tile_id
+        self.tile_id = tile_id # <-1 if tool isn't a tile, otherwise number to be used in board
         self.single_use = single_use
         self.ends_turn = ends_turn
         self.single_tile = single_tile
