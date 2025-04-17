@@ -139,7 +139,8 @@ class EventHandler:
             self.game.position = event.pos
     
     def switch_tool(self, tool_index):
-        self.game.turn_manager.tool_index = (tool_index + 1) % len(self.game.turn_manager.current_player.tools)
+        if not self.game.turn_manager.game_over:
+            self.game.turn_manager.tool_index = (tool_index + 1) % len(self.game.turn_manager.current_player.tools)
 
 
 # For rendering and graphical type things
@@ -200,9 +201,10 @@ class Board:
 
     # Finds position for user selection
     def get_next_open_row(self, col):
-        for row in range(Game.ROW_COUNT):
-            if self.board[row][col] == 0:
-                return (col, row)
+        for row in range(Game.ROW_COUNT - 2, -1, -1):
+            if self.board[row][col] != 0:
+                return (col, row + 1)
+        return (col, 0)
 
     def flip_board(self):
         self.board = np.flip(self.board, 0)
