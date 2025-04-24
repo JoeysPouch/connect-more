@@ -1,6 +1,6 @@
 import pygame
 import sys
-sys.path.append("C:\\Users\\Zarrin Rahman\\Documents\\Personal\\coding_adventures\\connect_4\\connect-more")
+sys.path.append(".")
 from logic.components.player import Player
 from logic.components.board import Board
 from logic.components.disc import Disc

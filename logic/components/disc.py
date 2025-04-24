@@ -1,5 +1,5 @@
 import sys
-sys.path.append("C:\\Users\\Zarrin Rahman\\Documents\\Personal\\coding_adventures\\connect_4\\connect-more")
+sys.path.append(".")
 from logic.config import SQUARE_SIZE
 
 class Disc:

@@ -1,6 +1,6 @@
 import numpy as np
 import sys
-sys.path.append("C:\\Users\\Zarrin Rahman\\Documents\\Personal\\coding_adventures\\connect_4\\connect-more")
+sys.path.append(".")
 from logic.config import ROW_COUNT, COLUMN_COUNT
 
 class Board:
