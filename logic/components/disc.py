@@ -15,7 +15,7 @@ class Disc:
         self.background_colour = background_colour
 
     def get_colour(self):
-        if self.board_value == 0 or self.board_value == 4:
+        if self.board_value in (0,4):
             self.colour = self.background_colour
         elif self.board_value == 1:
             self.colour = self.players[0].colour

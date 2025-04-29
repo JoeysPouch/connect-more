@@ -49,7 +49,7 @@ class TurnManager:
         self.players = [player_1, player_2]
         self.current_player = player_1
         self.tool_index = 0
-        self.special_tool_used = False
+        self.tool_used = False
 
     def player_turn(self):
         if not self.game_over:
@@ -62,8 +62,10 @@ class TurnManager:
                     if current_tool.tile_id >= 0:
                         if current_tool.single_tile:
                             position = (self.selection[0], ROW_COUNT - self.selection[1] - 1)
-                        elif current_tool.requires_empty:
+                        else:
                             position = self.game_board.get_next_open_row(self.selection[0])
+                            if not current_tool.requires_empty:
+                                position = (position[0], position[1] - 1)
                         self.game_board.position_change(position, self.current_player.id if current_tool.tile_id == 0 else current_tool.tile_id)
 
                     self.game_board.flip_board()
@@ -78,9 +80,9 @@ class TurnManager:
                     
                     if current_tool.ends_turn:
                         self.switch_turn()
-                        self.special_tool_used = False
+                        self.tool_used = False
                     else:
-                        self.special_tool_used = True
+                        self.tool_used = True
 
              
     # Checks if the last move created a win. this is an absolute garbage algorithm i stole from youtube
@@ -123,7 +125,7 @@ class EventHandler:
                 self.clicks(event)
             if event.type == pygame.MOUSEMOTION:
                 self.mouse_movement(event)
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE and not self.game.turn_manager.special_tool_used:
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE and not self.game.turn_manager.tool_used:
                 self.switch_tool(self.game.turn_manager.tool_index)
 
     def clicks(self, event):
@@ -159,9 +161,9 @@ class Render:
 
     def draw_board(self, board, turn, position):
         self.window.fill(self.background_colour)
+        pygame.draw.rect(self.window, (0, 0, 255), (0, self.square_size, self.square_size * COLUMN_COUNT, self.square_size * ROW_COUNT))
         for c in range(COLUMN_COUNT):
             for r in range(ROW_COUNT):
-                pygame.draw.rect(self.window, (0, 0, 255), (self.square_size * c, self.square_size * (r+1), self.square_size, self.square_size))
                 self.placed_disc = Disc(r, c, self.players, board[r][c], self.background_colour)
                 self.placed_disc.get_colour()
                 pygame.draw.circle(self.window, self.placed_disc.colour, self.placed_disc.position, self.placed_disc.radius)
