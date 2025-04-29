@@ -4,22 +4,19 @@ sys.path.append(".")
 from logic.components.player import Player
 from logic.components.board import Board
 from logic.components.disc import Disc
+from logic.config import ROW_COUNT, COLUMN_COUNT, SQUARE_SIZE
 
 # This contains the main game handling and data
 class Game:
-
-    ROW_COUNT = 6
-    COLUMN_COUNT = 7
-    SQUARE_SIZE = min(700/(ROW_COUNT + 1), 1400/COLUMN_COUNT)
 
     def __init__(self):
 
         pygame.init()
 
         # Basic Screen Information and Logic
-        self.square_size = Game.SQUARE_SIZE
-        screen_height = self.square_size * (Game.ROW_COUNT + 1)
-        screen_width = self.square_size * Game.COLUMN_COUNT
+        self.square_size = SQUARE_SIZE
+        screen_height = self.square_size * (ROW_COUNT + 1)
+        screen_width = self.square_size * COLUMN_COUNT
         size = (screen_width, screen_height)
         self.background_colour = (69,255,69)
         self.window = pygame.display.set_mode(size)
@@ -70,23 +67,23 @@ class TurnManager:
              
     # Checks if the last move created a win. this is an absolute garbage algorithm i stole from youtube
     def winning_move(self, board, turn):
-        for c in range(Game.COLUMN_COUNT-3):
-            for r in range(Game.ROW_COUNT):
+        for c in range(COLUMN_COUNT-3):
+            for r in range(ROW_COUNT):
                 if board[r][c] == turn and board[r][c+1] == turn and board[r][c+2] == turn and board[r][c+3] == turn:
                     return True
 
-        for c in range(Game.COLUMN_COUNT):
-            for r in range(Game.ROW_COUNT-3):
+        for c in range(COLUMN_COUNT):
+            for r in range(ROW_COUNT-3):
                 if board[r][c] == turn and board[r+1][c] == turn and board[r+2][c] == turn and board[r+3][c] == turn:
                     return True
 
-        for c in range(Game.COLUMN_COUNT-3):
-            for r in range(Game.ROW_COUNT-3):
+        for c in range(COLUMN_COUNT-3):
+            for r in range(ROW_COUNT-3):
                 if board[r][c] == turn and board[r+1][c+1] == turn and board[r+2][c+2] == turn and board[r+3][c+3] == turn:
                     return True
 
-        for c in range(Game.COLUMN_COUNT-3):
-            for r in range(3, Game.ROW_COUNT):
+        for c in range(COLUMN_COUNT-3):
+            for r in range(3, ROW_COUNT):
                 if board[r][c] == turn and board[r-1][c+1] == turn and board[r-2][c+2] == turn and board[r-3][c+3] == turn:
                     return True
 
@@ -138,16 +135,16 @@ class Render:
 
     def draw_board(self, board, turn, position):
         self.window.fill(self.background_colour)
-        for c in range(Game.COLUMN_COUNT):
-            for r in range(Game.ROW_COUNT):
+        for c in range(COLUMN_COUNT):
+            for r in range(ROW_COUNT):
                 pygame.draw.rect(self.window, (0, 0, 255), (self.square_size * c, self.square_size * (r+1), self.square_size, self.square_size))
                 self.placed_disc = Disc(r, c, self.players, board[r][c], self.background_colour)
                 self.placed_disc.get_colour()
                 pygame.draw.circle(self.window, self.placed_disc.colour, self.placed_disc.position, self.placed_disc.radius)
 
     def draw_mouse_disc(self, turn, position):           
-        pygame.draw.circle(self.window, turn.colour, (position[0], Game.SQUARE_SIZE/2), self.disc_size)
-        pygame.draw.circle(self.window, (0,0,0),  (position[0], Game.SQUARE_SIZE/2), self.disc_size, max(int(self.disc_size/20), 1))
+        pygame.draw.circle(self.window, turn.colour, (position[0], SQUARE_SIZE/2), self.disc_size)
+        pygame.draw.circle(self.window, (0,0,0),  (position[0], SQUARE_SIZE/2), self.disc_size, max(int(self.disc_size/20), 1))
 
         
     def final_render(self):        
