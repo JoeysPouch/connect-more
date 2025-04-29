@@ -11,16 +11,21 @@ class Board:
         self.board[pos[1]][pos[0]] = turn
 
     # Checks whether click location is valid for current tool
-    def is_valid_location(self, pos, tool):      
-        if tool.single_tile and pos[1] >= 0:
-            if tool.requires_empty:
+    def is_valid_location(self, pos, tool): 
+        if tool.single_tile:
+            if pos[1] < 0:
+                return False
+            elif tool.requires_empty:
                 return self.board[pos[1]][pos[0]] == 0
             else:
-                return True
+                return self.board[pos[1]][pos[0]] != 0
         elif tool.requires_empty:
             return self.board[0][pos[0]] == 0
         else:
-            return True
+            for row in range(ROW_COUNT):
+                if self.board[row][pos[0]] != 0:
+                    return True
+            return False
 
     # Finds position for user selection
     def get_next_open_row(self, col):
