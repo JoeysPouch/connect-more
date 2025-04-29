@@ -15,12 +15,14 @@ class Disc:
         self.background_colour = background_colour
 
     def get_colour(self):
-        if self.board_value == 0:
+        if self.board_value in (0,4):
             self.colour = self.background_colour
         elif self.board_value == 1:
             self.colour = self.players[0].colour
-        else:
+        elif self.board_value == 2:
             self.colour = self.players[1].colour
+        elif self.board_value == 3:
+            self.colour = (255 - self.background_colour[0], 255 - self.background_colour[1], 255 - self.background_colour[2])
 
 if __name__ == "__main__":
     print('\n'.join(sys.path))
