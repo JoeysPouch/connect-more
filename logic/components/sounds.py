@@ -4,7 +4,7 @@ class Sounds:
     def __init__(self, is_music, is_powerup, file_name):
         self.is_music = is_music
         self.is_powerup = is_powerup
-        self.file_name = f'{file_name}.wav'
+        self.file_name = f'./assets/sound/{file_name}.wav'
         self.variable_volume = 0.0
         self.sound = None
         self.increasing = False
