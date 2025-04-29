@@ -4,6 +4,7 @@ sys.path.append(".")
 from logic.components.player import Player
 from logic.components.board import Board
 from logic.components.disc import Disc
+from logic.components.sounds import Sounds
 from logic.components.tool import Tool
 from logic.config import ROW_COUNT, COLUMN_COUNT, SQUARE_SIZE
 
@@ -22,6 +23,26 @@ class Game:
         self.background_colour = (69,255,69)
         self.window = pygame.display.set_mode(size)
         self.position = (0,0)
+        self.pieces = 0
+
+        # Main Game Audio Setup
+        self.audio = {'menu': Sounds(True, False, 'menu_music').upload_sound(),
+                      'layer_1': Sounds(True, False, 'layer_1').upload_sound(),
+                      'layer_2': Sounds(True, False, 'layer_2').upload_sound(),
+                      'layer_3': Sounds(True, False, 'layer_3').upload_sound(),
+                      'layer_4': Sounds(True, False, 'layer_4').upload_sound(),
+                      'layer_5': Sounds(True, False, 'layer_5').upload_sound(),
+                      'layer_6': Sounds(True, False, 'layer_6').upload_sound(),                    
+                      'bomb': Sounds(False, True, 'bomb_sound').upload_sound(),
+                      'piece': Sounds(False, True, 'piece_sound').upload_sound(),
+                       }
+
+        self.audio['layer_1'].set_volume(1.0)
+        self.audio['layer_1'].start(-1, fade_ms = 3000)
+        for layer in ['layer_2', 'layer_3', 'layer_4', 'layer_5', 'layer_6']:
+            self.audio[layer].start(-1, 0)
+            self.audio[layer].set_volume(0.0)
+        self.active_layers = set('layer_1')
 
         # Initialises other classes
         self.game_board = Board()
@@ -69,6 +90,8 @@ class TurnManager:
                         self.game_board.position_change(position, self.current_player.id if current_tool.tile_id == 0 else current_tool.tile_id)
 
                     self.game_board.flip_board()
+
+                    # print(self.game_board.board)
 
                     if current_tool.single_use:
                         del self.current_player.tools[self.tool_index] 
@@ -128,21 +151,43 @@ class EventHandler:
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE and not self.game.turn_manager.tool_used:
                 self.switch_tool(self.game.turn_manager.tool_index)
 
+        for layer in ['layer_2', 'layer_3', 'layer_4', 'layer_5', 'layer_6']:
+            if self.game.audio[layer].increasing:
+                self.game.audio[layer].increase_volume(0.0005)
+
     def clicks(self, event):
         if not self.game.turn_manager.game_over:
             self.game.turn_manager.attempt = True
             self.game.turn_manager.selection = (int(event.pos[0]/self.game.square_size), int(event.pos[1]/self.game.square_size) - 1)
             self.game.turn_manager.player_turn()
+            self.game.audio['piece'].start()
+            self.game.pieces += 1
+            self.music()
             self.game.attempt = False
 
     def mouse_movement(self, event):
         if not self.game.turn_manager.game_over:
             self.game.position = event.pos
 
+
+    def music(self):
+        thresholds = {
+                    4: ['layer_2', 'layer_3'],
+                      10: ['layer_4', 'layer_5'],
+                      20: ['layer_6']}
+        for threshold, layers in thresholds.items():
+            if self.game.pieces >= threshold:
+                for layer in layers:
+                    if layer not in self.game.active_layers:
+                        if self.game.audio[layer].variable_volume < 1:
+                            self.game.audio[layer].increasing = True
+                        else:
+                            self.game.audio[layer].increasing = False
+                        self.game.active_layers.add(layer)
+
     def switch_tool(self, tool_index):
         if not self.game.turn_manager.game_over:
             self.game.turn_manager.tool_index = (tool_index + 1) % len(self.game.turn_manager.current_player.tools)
-
 
 # For rendering and graphical type things
 class Render:
