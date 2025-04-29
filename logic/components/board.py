@@ -7,19 +7,27 @@ class Board:
     def __init__(self):
         self.board = np.zeros((ROW_COUNT, COLUMN_COUNT))
 
-    def position_change(self, row, col, turn):
-        self.board[row][col] = turn
+    def position_change(self, pos, turn):
+        self.board[pos[1]][pos[0]] = turn
 
-    # Checks whether top row is taken 
-    def is_valid_location(self, col):      
-        print(self.board[0][col] == 0)
-        return self.board[0][col] == 0
+    # Checks whether click location is valid for current tool
+    def is_valid_location(self, pos, tool):      
+        if tool.single_tile and pos[1] >= 0:
+            if tool.requires_empty:
+                return self.board[pos[1]][pos[0]] == 0
+            else:
+                return True
+        elif tool.requires_empty:
+            return self.board[0][pos[0]] == 0
+        else:
+            return True
 
     # Finds position for user selection
     def get_next_open_row(self, col):
-        for row in range(ROW_COUNT):
-            if self.board[row][col] == 0:
-                return row
+        for row in range(ROW_COUNT - 2, -1, -1):
+            if self.board[row][col] != 0:
+                return (col, row + 1)
+        return (col, 0)
 
     def flip_board(self):
         self.board = np.flip(self.board, 0)
