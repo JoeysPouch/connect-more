@@ -31,7 +31,7 @@ class Board:
 
     # Finds position for user selection
     def get_next_open_row(self, col):
-        for row in range(ROW_COUNT - 2, -1, -1):
+        for row in range(ROW_COUNT - 1, -1, -1):
             if self.board[row][col] != 0:
                 return (col, row + 1)
         return (col, 0)
