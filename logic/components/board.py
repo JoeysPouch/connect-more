@@ -15,6 +15,8 @@ class Board:
         if tool.single_tile:
             if pos[1] < 0:
                 return False
+            elif tool.id == 3:
+                return tool.check_surrounding_tiles(pos, self.board)
             elif tool.requires_empty:
                 return self.board[pos[1]][pos[0]] == 0
             else:

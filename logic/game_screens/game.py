@@ -46,8 +46,8 @@ class Game:
 
         # Initialises other classes
         self.game_board = Board()
-        self.player_1 = Player(1, "Player 1", (255,0,0), [Tool(0, 0, False, True, False, True), Tool(1, 4, True, False, False, True), Tool(2, 3, True, True, True, False)])
-        self.player_2 = Player(2, "Player 2", (255,255,0), [Tool(0, 0, False, True, False, True), Tool(1, 4, True, False, False, True), Tool(2, 3, True, True, True, False)])
+        self.player_1 = Player(1, "Player 1", (255,0,0), [Tool(0, 0, False, True, False, True), Tool(1, 4, True, False, False, True), Tool(2, 3, True, True, True, False), Tool(3, 0, True, True, True, True)])
+        self.player_2 = Player(2, "Player 2", (255,255,0), [Tool(0, 0, False, True, False, True), Tool(1, 4, True, False, False, True), Tool(2, 3, True, True, True, False), Tool(3, 0, True, True, True, True)])
         self.turn_manager = TurnManager(self.game_board, self.position, self.player_1, self.player_2)
         self.event_handler = EventHandler(self)
         self.renderer = Render(self.window, self.square_size, self.background_colour, self.player_1, self.player_2)
