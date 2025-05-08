@@ -46,8 +46,8 @@ class Game:
 
         # Initialises other classes
         self.game_board = Board()
-        self.player_1 = Player(1, "Player 1", (255,0,0), [Tool(0, 0, False, True, False, True), Tool(1, 4, True, False, False, True), Tool(2, 3, True, True, True, False)])
-        self.player_2 = Player(2, "Player 2", (255,255,0), [Tool(0, 0, False, True, False, True), Tool(1, 4, True, False, False, True), Tool(2, 3, True, True, True, False)])
+        self.player_1 = Player(1, "Player 1", (255,0,0), [Tool(0, 1.5, False, True, False, True), Tool(1, 4, True, False, False, True), Tool(2, 3, True, True, True, False), Tool(3, 1.5, True, True, True, True), Tool(4, 0, True, False, False, False)])
+        self.player_2 = Player(2, "Player 2", (255,255,0), [Tool(0, 1.5, False, True, False, True), Tool(1, 4, True, False, False, True), Tool(2, 3, True, True, True, False), Tool(3, 1.5, True, True, True, True), Tool(4, 0, True, False, False, False)])
         self.turn_manager = TurnManager(self.game_board, self.position, self.player_1, self.player_2)
         self.event_handler = EventHandler(self)
         self.renderer = Render(self.window, self.square_size, self.background_colour, self.player_1, self.player_2)
@@ -87,7 +87,9 @@ class TurnManager:
                             position = self.game_board.get_next_open_row(self.selection[0])
                             if not current_tool.requires_empty:
                                 position = (position[0], position[1] - 1)
-                        self.game_board.position_change(position, self.current_player.id if current_tool.tile_id == 0 else current_tool.tile_id)
+                                if current_tool.id == 4:
+                                    held_tile_id = self.game_board.board[position[1]][position[0]]
+                        self.game_board.position_change(position, self.current_player.id if current_tool.tile_id == 1.5 else current_tool.tile_id)
 
                     self.game_board.flip_board()
 
@@ -97,6 +99,9 @@ class TurnManager:
                         del self.current_player.tools[self.tool_index] 
                     
                     self.tool_index = 0
+
+                    if current_tool.id == 4:
+                        self.current_player.tools = [Tool(-1, held_tile_id, True, True, False, True)] + self.current_player.tools
 
                     if self.winning_move(self.game_board.board, self.current_player.id):  
                         self.game_over = True
