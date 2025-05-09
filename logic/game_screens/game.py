@@ -122,12 +122,12 @@ class TurnManager:
     def winning_move(self, board, turn):
         for c in range(COLUMN_COUNT-3):
             for r in range(ROW_COUNT):
-                if board[r][c] == turn and board[r][c+1] == turn and board[r][c+2] == turn and board[r][c+3]:
+                if board[r][c] == turn and board[r][c+1] == turn and board[r][c+2] == turn and board[r][c+3] == turn:
                     return True
 
         for c in range(COLUMN_COUNT):
             for r in range(ROW_COUNT-3):
-                if board[r][c] == turn and board[r+1][c] == turn and board[r+2][c] == turn and board[r+3][c]:
+                if board[r][c] == turn and board[r+1][c] == turn and board[r+2][c] == turn and board[r+3][c] == turn:
                     return True
 
         for c in range(COLUMN_COUNT-3):
