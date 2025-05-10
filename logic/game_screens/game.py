@@ -1,5 +1,6 @@
 import pygame
 import sys
+import random
 sys.path.append(".")
 from logic.components.player import Player
 from logic.components.board import Board
@@ -7,6 +8,10 @@ from logic.components.disc import Disc
 from logic.components.sounds import Sounds
 from logic.components.tool import Tool
 from logic.config import ROW_COUNT, COLUMN_COUNT, SQUARE_SIZE, TOOL_IDS, NUMBER_TO_WIN
+
+TOOL_CHANCE = 0.1
+ELIGIBLE_TOOLS = [1,2,3,4]
+VISIBLE_TOOLS = True
 
 # This contains the main game handling and data
 class Game:
@@ -24,6 +29,22 @@ class Game:
         self.window = pygame.display.set_mode(size)
         self.position = (0,0)
         self.pieces = 0
+
+        # Generate tools
+        self.tool_locations = {}
+
+        for row in range(1, ROW_COUNT):
+            for col in range(0, COLUMN_COUNT):
+                if random.random() < TOOL_CHANCE * (1 - row / ROW_COUNT):
+                    tool_to_add = random.choice(ELIGIBLE_TOOLS)
+                    if tool_to_add == 1:
+                        self.tool_locations[(col, row)] = Tool(1, 4, True, False, False, True)
+                    elif tool_to_add == 2:
+                        self.tool_locations[(col, row)] = Tool(2, 3, True, True, True, False)
+                    elif tool_to_add == 3:
+                        self.tool_locations[(col, row)] = Tool(3, 1.5, True, True, True, True)
+                    elif tool_to_add == 4:
+                        self.tool_locations[(col, row)] = Tool(4, 0, True, False, False, False)
 
         # Main Game Audio Setup
         self.audio = {'menu': Sounds(True, False, 'menu_music').upload_sound(),
@@ -46,11 +67,11 @@ class Game:
 
         # Initialises other classes
         self.game_board = Board()
-        self.player_1 = Player(1, "Player 1", (255,0,0), [Tool(0, 1.5, False, True, False, True), Tool(1, 4, True, False, False, True), Tool(2, 3, True, True, True, False), Tool(3, 1.5, True, True, True, True), Tool(4, 0, True, False, False, False)])
-        self.player_2 = Player(2, "Player 2", (255,255,0), [Tool(0, 1.5, False, True, False, True), Tool(1, 4, True, False, False, True), Tool(2, 3, True, True, True, False), Tool(3, 1.5, True, True, True, True), Tool(4, 0, True, False, False, False)])
-        self.turn_manager = TurnManager(self.game_board, self.position, self.player_1, self.player_2)
+        self.player_1 = Player(1, "Player 1", (255,0,0), [Tool(0, 1.5, False, True, False, True)])
+        self.player_2 = Player(2, "Player 2", (255,255,0), [Tool(0, 1.5, False, True, False, True)])
+        self.turn_manager = TurnManager(self.game_board, self.position, self.player_1, self.player_2, self.tool_locations)
         self.event_handler = EventHandler(self)
-        self.renderer = Render(self.window, self.square_size, self.background_colour, self.player_1, self.player_2)
+        self.renderer = Render(self.window, self.square_size, self.background_colour, self.player_1, self.player_2, self.tool_locations)
 
         self.game_loop()
     
@@ -61,18 +82,19 @@ class Game:
 
 
 class TurnManager:
-    def __init__(self, board, position, player_1, player_2):
+    def __init__(self, board, position, player_1, player_2, tool_locations):
         self.game_board = board
         self.position = position
         self.attempt = False
         self.game_over = False
-        self.selection = 0
+        self.selection = (-1, -1)
         self.players = [player_1, player_2]
         self.current_player = player_1
         self.tool_index = 0
         self.tool_used = False
         self.number_of_turns = 0
         self.remaining_drops = 1
+        self.tool_locations = tool_locations
 
     def player_turn(self):
         if not self.game_over:
@@ -93,6 +115,9 @@ class TurnManager:
                                     held_tile_id = self.game_board.board[position[1]][position[0]]
                                     
                         self.game_board.position_change(position, self.current_player.id if current_tool.tile_id == 1.5 else current_tool.tile_id)
+                        if position in self.tool_locations:
+                            self.current_player.tools.append(self.tool_locations[position])
+                            del self.tool_locations[position]
 
                     self.game_board.flip_board()
 
@@ -106,7 +131,7 @@ class TurnManager:
                     if current_tool.id == 4:
                         self.current_player.tools = [Tool(-1, held_tile_id, True, True, False, True)] + self.current_player.tools
 
-                    if self.winning_move(self.game_board.board, self.current_player.id):  
+                    if self.winning_move(self.game_board.board, self.current_player.id, (ROW_COUNT - position[1] - 1, position[0])):  
                         self.game_over = True
                     
                     if current_tool.ends_turn:
@@ -117,28 +142,55 @@ class TurnManager:
                     else:
                         self.tool_used = True
 
+    # reads a line of given length on the board from a given position (pos) in the direction of a given vector
+    def find_line(self, board, pos, vector, length):
+        line = []
+        for k in range(length):
+            if pos[0]+k*vector[0] < 0 or pos[1]+k*vector[1] < 0:
+                return [False]
+            if pos[0]+k*vector[0] >= ROW_COUNT or pos[1]+k*vector[1] >= COLUMN_COUNT:
+                return [False]
+            next_letter = int(board[pos[0]+k*vector[0]][pos[1]+k*vector[1]])
+            line.append(next_letter)
+        return line
+    
+    # generates list of positions to put in find_line to read all lines of given length in direction of given vector that contain point (row, column)
+    # useful for checking diagonals
+    def start_points(self, row, column, vector, length):
+        points = []
+        for i in range(length):
+            points.append((row + i*vector[0], column + i*vector[1]))
+        return points
+
              
-    # Checks if the last move created a win. this is an absolute garbage algorithm i stole from youtube
-    def winning_move(self, board, turn):
-        for c in range(COLUMN_COUNT-3):
-            for r in range(ROW_COUNT):
-                if board[r][c] == turn and board[r][c+1] == turn and board[r][c+2] == turn and board[r][c+3] == turn:
-                    return True
+    # Checks if the last move created a win
+    def winning_move(self, board, turn, last_pos):
 
-        for c in range(COLUMN_COUNT):
-            for r in range(ROW_COUNT-3):
-                if board[r][c] == turn and board[r+1][c] == turn and board[r+2][c] == turn and board[r+3][c] == turn:
-                    return True
+        connect_length = 4  # to be replaced with NUMBER_TO_WIN
 
-        for c in range(COLUMN_COUNT-3):
-            for r in range(ROW_COUNT-3):
-                if board[r][c] == turn and board[r+1][c+1] == turn and board[r+2][c+2] == turn and board[r+3][c+3] == turn:
-                    return True
+        # checks top left to bottom right diagoanals
+        for point in self.start_points(last_pos[0], last_pos[1], (-1, -1), connect_length):
+            line_to_check = self.find_line(board, point, (1, 1), connect_length)
+            if set(line_to_check) == {turn}:
+                return True
+        
+        # checks horizontal lines
+        for column in range(last_pos[1] - connect_length + 1, last_pos[1] + 1):
+            line_to_check = self.find_line(board, (last_pos[0], column), (0, 1), connect_length)
+            if set(line_to_check) == {turn}:
+                return True
+        
+        # checks bottom left to top right
+        for point in self.start_points(last_pos[0], last_pos[1], (1, -1), connect_length):
+            line_to_check = self.find_line(board, point, (-1, 1), connect_length)
+            if set(line_to_check) == {turn}:
+                return True
 
-        for c in range(COLUMN_COUNT-3):
-            for r in range(3, ROW_COUNT):
-                if board[r][c] == turn and board[r-1][c+1] == turn and board[r-2][c+2] == turn and board[r-3][c+3] == turn:
-                    return True
+        # checks vertical line
+        line_to_check = self.find_line(board, last_pos, (1, 0), connect_length)
+        if set(line_to_check) == {turn}:
+                return True
+
 
     def switch_turn(self):  
         self.current_player = self.players[0] if self.current_player == self.players[1] else self.players[1]
@@ -203,12 +255,13 @@ class EventHandler:
 
 # For rendering and graphical type things
 class Render:
-    def __init__(self, window, square_size, background_colour, player_1, player_2):
+    def __init__(self, window, square_size, background_colour, player_1, player_2, tool_locations):
         self.window = window
         self.square_size = square_size
         self.disc_size = int(self.square_size / 2.5)
         self.background_colour = background_colour
         self.players = [player_1, player_2]
+        self.tool_locations = tool_locations
 
 
     def render(self, board, turn, position, tool):
@@ -224,6 +277,8 @@ class Render:
                 self.placed_disc = Disc(r, c, self.players, board[r][c], self.background_colour)
                 self.placed_disc.get_colour()
                 pygame.draw.circle(self.window, self.placed_disc.colour, self.placed_disc.position, self.placed_disc.radius)
+                if (c,ROW_COUNT - r - 1) in self.tool_locations and VISIBLE_TOOLS:
+                    pygame.draw.circle(self.window, "white", self.placed_disc.position, self.placed_disc.radius / 3)
 
     def draw_mouse_disc(self, turn, position, tool):           
         if tool.single_tile:         
