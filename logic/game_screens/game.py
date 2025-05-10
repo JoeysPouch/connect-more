@@ -112,7 +112,7 @@ class TurnManager:
                     else:
                         self.tool_used = True
 
-
+    # reads a line of given length on the board from a given position (pos) in the direction of a given vector
     def find_line(self, board, pos, vector, length):
         line = []
         for k in range(length):
@@ -124,6 +124,7 @@ class TurnManager:
             line.append(next_letter)
         return line
     
+    # generates list of positions to put in find_line to read all lines of given length in direction of given vector that contain point (row, column)
     def start_points(self, row, column, vector, length):
         points = []
         for i in range(length):
@@ -135,59 +136,58 @@ class TurnManager:
     def winning_move(self, board, turn, last_pos):
 
         connect_length = 4  # to be replaced with NUMBER_TO_WIN
-        print(last_pos)
+        # print(last_pos)
 
         # checks top left to bottom right diagoanals
-        print("--POSITIVE DIAGONALS--")
         for point in self.start_points(last_pos[0], last_pos[1], (-1, -1), connect_length):
             line_to_check = self.find_line(board, point, (1, 1), connect_length)
-            print(f"{point}: {line_to_check}")
-            print(set(line_to_check) == {turn})
+            # print(f"{point}: {line_to_check}")
+            # print(set(line_to_check) == {turn})
+            if set(line_to_check) == {turn}:
+                return True
         
         # checks horizontal lines
-        print("--HORIZONTALS--")
         for c in range(last_pos[1] - connect_length + 1, last_pos[1] + 1):
             line_to_check = self.find_line(board, (last_pos[0], c), (0, 1), connect_length)
-            print(f"{point}: {line_to_check}")
-            print(set(line_to_check) == {turn})
+            # print(f"{point}: {line_to_check}")
+            # print(set(line_to_check) == {turn})
+            if set(line_to_check) == {turn}:
+                return True
         
         # checks bottom left to top right
-        print("--NEGATIVE DIAGONALS--")
         for point in self.start_points(last_pos[0], last_pos[1], (1, -1), connect_length):
             line_to_check = self.find_line(board, point, (-1, 1), connect_length)
-            print(f"{point}: {line_to_check}")
-            print(set(line_to_check) == {turn})
+            # print(f"{point}: {line_to_check}")
+            # print(set(line_to_check) == {turn})
+            if set(line_to_check) == {turn}:
+                return True
 
         # checks vertical line
-        print("--VERTICAL--")
         line_to_check = self.find_line(board, last_pos, (1, 0), connect_length)
-        print(f"{point}: {line_to_check}")
-        print(set(line_to_check) == {turn})
+        # print(f"{point}: {line_to_check}")
+        # print(set(line_to_check) == {turn})
+        if set(line_to_check) == {turn}:
+                return True
         
-        for c in range(COLUMN_COUNT-3):
-            for r in range(ROW_COUNT):
-                if board[r][c] == turn and board[r][c+1] == turn and board[r][c+2] == turn and board[r][c+3] == turn:
-                    return True
+        # for c in range(COLUMN_COUNT-3):
+        #     for r in range(ROW_COUNT):
+        #         if board[r][c] == turn and board[r][c+1] == turn and board[r][c+2] == turn and board[r][c+3] == turn:
+        #             return True
 
-        for c in range(COLUMN_COUNT):
-            for r in range(ROW_COUNT-3):
-                if board[r][c] == turn and board[r+1][c] == turn and board[r+2][c] == turn and board[r+3][c] == turn:
-                    return True
+        # for c in range(COLUMN_COUNT):
+        #     for r in range(ROW_COUNT-3):
+        #         if board[r][c] == turn and board[r+1][c] == turn and board[r+2][c] == turn and board[r+3][c] == turn:
+        #             return True
 
-        for c in range(COLUMN_COUNT-3):
-            for r in range(ROW_COUNT-3):
-                if board[r][c] == turn and board[r+1][c+1] == turn and board[r+2][c+2] == turn and board[r+3][c+3] == turn:
-                    return True
+        # for c in range(COLUMN_COUNT-3):
+        #     for r in range(ROW_COUNT-3):
+        #         if board[r][c] == turn and board[r+1][c+1] == turn and board[r+2][c+2] == turn and board[r+3][c+3] == turn:
+        #             return True
 
-        for c in range(COLUMN_COUNT-3):
-            for r in range(3, ROW_COUNT):
-                if board[r][c] == turn and board[r-1][c+1] == turn and board[r-2][c+2] == turn and board[r-3][c+3] == turn:
-                    return True
-                
-        # vectors = [(1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1), (0, -1), (1, -1)]
-        # print(f"---LINES AROUND ({last_pos[0]}, {last_pos[1]})")
-        # for vector in vectors:
-        #     print(f"{vector}: {self.find_line(board, last_pos, vector, connect_length)}")
+        # for c in range(COLUMN_COUNT-3):
+        #     for r in range(3, ROW_COUNT):
+        #         if board[r][c] == turn and board[r-1][c+1] == turn and board[r-2][c+2] == turn and board[r-3][c+3] == turn:
+        #             return True
 
 
 
