@@ -7,7 +7,7 @@ from logic.components.board import Board
 from logic.components.disc import Disc
 from logic.components.sounds import Sounds
 from logic.components.tool import Tool
-from logic.config import ROW_COUNT, COLUMN_COUNT, SQUARE_SIZE
+from logic.config import ROW_COUNT, COLUMN_COUNT, SQUARE_SIZE, TOOL_IDS, NUMBER_TO_WIN
 
 TOOL_CHANCE = 0.1
 ELIGIBLE_TOOLS = [1,2,3,4]
@@ -92,6 +92,8 @@ class TurnManager:
         self.current_player = player_1
         self.tool_index = 0
         self.tool_used = False
+        self.number_of_turns = 0
+        self.remaining_drops = 1
         self.tool_locations = tool_locations
 
     def player_turn(self):
@@ -111,6 +113,7 @@ class TurnManager:
                                 position = (position[0], position[1] - 1)
                                 if current_tool.id == 4:
                                     held_tile_id = self.game_board.board[position[1]][position[0]]
+                                    
                         self.game_board.position_change(position, self.current_player.id if current_tool.tile_id == 1.5 else current_tool.tile_id)
                         if position in self.tool_locations:
                             self.current_player.tools.append(self.tool_locations[position])
@@ -132,7 +135,9 @@ class TurnManager:
                         self.game_over = True
                     
                     if current_tool.ends_turn:
-                        self.switch_turn()
+                        self.remaining_drops -= 1
+                        if self.remaining_drops == 0:
+                            self.switch_turn()
                         self.tool_used = False
                     else:
                         self.tool_used = True
@@ -189,8 +194,11 @@ class TurnManager:
 
     def switch_turn(self):  
         self.current_player = self.players[0] if self.current_player == self.players[1] else self.players[1]
-
-
+        self.number_of_turns += 1
+        if NUMBER_TO_WIN > 4:
+            self.remaining_drops = 2
+        else:
+            self.remaining_drops = 1
 
 # For event handling and keyboard/mouse logic
 class EventHandler:
@@ -218,7 +226,6 @@ class EventHandler:
             self.game.turn_manager.selection = (int(event.pos[0]/self.game.square_size), int(event.pos[1]/self.game.square_size) - 1)
             self.game.turn_manager.player_turn()
             self.game.audio['piece'].start()
-            self.game.pieces += 1
             self.music()
             self.game.attempt = False
 
@@ -233,7 +240,7 @@ class EventHandler:
                       10: ['layer_4', 'layer_5'],
                       20: ['layer_6']}
         for threshold, layers in thresholds.items():
-            if self.game.pieces >= threshold:
+            if self.game.turn_manager.number_of_turns >= threshold:
                 for layer in layers:
                     if layer not in self.game.active_layers:
                         if self.game.audio[layer].variable_volume < 1:
@@ -281,7 +288,6 @@ class Render:
             pygame.draw.circle(self.window, turn.colour, (position[0], SQUARE_SIZE/2), self.disc_size)
             pygame.draw.circle(self.window, (0,0,0),  (position[0], SQUARE_SIZE/2), self.disc_size, max(int(self.disc_size/20), 1))
 
-        
     def final_render(self):        
         pygame.display.flip()
 
