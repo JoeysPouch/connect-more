@@ -24,6 +24,12 @@ class Game:
         self.window = pygame.display.set_mode(size)
         self.position = (0,0)
         self.pieces = 0
+        self.tool_locations = {
+            (1,4):Tool(1, 4, True, False, False, True),
+            (3,2):Tool(2, 3, True, True, True, False), 
+            (4,1):Tool(3, 1.5, True, True, True, True), 
+            (5,3):Tool(4, 0, True, False, False, False)
+        }
 
         # Main Game Audio Setup
         self.audio = {'menu': Sounds(True, False, 'menu_music').upload_sound(),
@@ -46,11 +52,11 @@ class Game:
 
         # Initialises other classes
         self.game_board = Board()
-        self.player_1 = Player(1, "Player 1", (255,0,0), [Tool(0, 1.5, False, True, False, True), Tool(1, 4, True, False, False, True), Tool(2, 3, True, True, True, False), Tool(3, 1.5, True, True, True, True), Tool(4, 0, True, False, False, False)])
-        self.player_2 = Player(2, "Player 2", (255,255,0), [Tool(0, 1.5, False, True, False, True), Tool(1, 4, True, False, False, True), Tool(2, 3, True, True, True, False), Tool(3, 1.5, True, True, True, True), Tool(4, 0, True, False, False, False)])
-        self.turn_manager = TurnManager(self.game_board, self.position, self.player_1, self.player_2)
+        self.player_1 = Player(1, "Player 1", (255,0,0), [Tool(0, 1.5, False, True, False, True)])
+        self.player_2 = Player(2, "Player 2", (255,255,0), [Tool(0, 1.5, False, True, False, True)])
+        self.turn_manager = TurnManager(self.game_board, self.position, self.player_1, self.player_2, self.tool_locations)
         self.event_handler = EventHandler(self)
-        self.renderer = Render(self.window, self.square_size, self.background_colour, self.player_1, self.player_2)
+        self.renderer = Render(self.window, self.square_size, self.background_colour, self.player_1, self.player_2, self.tool_locations)
 
         self.game_loop()
     
@@ -61,7 +67,7 @@ class Game:
 
 
 class TurnManager:
-    def __init__(self, board, position, player_1, player_2):
+    def __init__(self, board, position, player_1, player_2, tool_locations):
         self.game_board = board
         self.position = position
         self.attempt = False
@@ -71,6 +77,7 @@ class TurnManager:
         self.current_player = player_1
         self.tool_index = 0
         self.tool_used = False
+        self.tool_locations = tool_locations
 
     def player_turn(self):
         if not self.game_over:
@@ -90,6 +97,9 @@ class TurnManager:
                                 if current_tool.id == 4:
                                     held_tile_id = self.game_board.board[position[1]][position[0]]
                         self.game_board.position_change(position, self.current_player.id if current_tool.tile_id == 1.5 else current_tool.tile_id)
+                        if position in self.tool_locations:
+                            self.current_player.tools.append(self.tool_locations[position])
+                            del self.tool_locations[position]
 
                     self.game_board.flip_board()
 
@@ -196,12 +206,13 @@ class EventHandler:
 
 # For rendering and graphical type things
 class Render:
-    def __init__(self, window, square_size, background_colour, player_1, player_2):
+    def __init__(self, window, square_size, background_colour, player_1, player_2, tool_locations):
         self.window = window
         self.square_size = square_size
         self.disc_size = int(self.square_size / 2.5)
         self.background_colour = background_colour
         self.players = [player_1, player_2]
+        self.tool_locations = tool_locations
 
 
     def render(self, board, turn, position, tool):
@@ -217,6 +228,8 @@ class Render:
                 self.placed_disc = Disc(r, c, self.players, board[r][c], self.background_colour)
                 self.placed_disc.get_colour()
                 pygame.draw.circle(self.window, self.placed_disc.colour, self.placed_disc.position, self.placed_disc.radius)
+                if (c,ROW_COUNT - r - 1) in self.tool_locations:
+                    pygame.draw.circle(self.window, "white", self.placed_disc.position, self.placed_disc.radius / 3)
 
     def draw_mouse_disc(self, turn, position, tool):           
         if tool.single_tile:         
