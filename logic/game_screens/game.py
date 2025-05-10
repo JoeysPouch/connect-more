@@ -93,7 +93,7 @@ class TurnManager:
 
                     self.game_board.flip_board()
 
-                    print(self.game_board.board)
+                    # print(self.game_board.board)
 
                     if current_tool.single_use:
                         del self.current_player.tools[self.tool_index] 
@@ -125,6 +125,7 @@ class TurnManager:
         return line
     
     # generates list of positions to put in find_line to read all lines of given length in direction of given vector that contain point (row, column)
+    # useful for checking diagonals
     def start_points(self, row, column, vector, length):
         points = []
         for i in range(length):
@@ -132,63 +133,33 @@ class TurnManager:
         return points
 
              
-    # Checks if the last move created a win. this is an absolute garbage algorithm i stole from youtube
+    # Checks if the last move created a win
     def winning_move(self, board, turn, last_pos):
 
         connect_length = 4  # to be replaced with NUMBER_TO_WIN
-        # print(last_pos)
 
         # checks top left to bottom right diagoanals
         for point in self.start_points(last_pos[0], last_pos[1], (-1, -1), connect_length):
             line_to_check = self.find_line(board, point, (1, 1), connect_length)
-            # print(f"{point}: {line_to_check}")
-            # print(set(line_to_check) == {turn})
             if set(line_to_check) == {turn}:
                 return True
         
         # checks horizontal lines
-        for c in range(last_pos[1] - connect_length + 1, last_pos[1] + 1):
-            line_to_check = self.find_line(board, (last_pos[0], c), (0, 1), connect_length)
-            # print(f"{point}: {line_to_check}")
-            # print(set(line_to_check) == {turn})
+        for column in range(last_pos[1] - connect_length + 1, last_pos[1] + 1):
+            line_to_check = self.find_line(board, (last_pos[0], column), (0, 1), connect_length)
             if set(line_to_check) == {turn}:
                 return True
         
         # checks bottom left to top right
         for point in self.start_points(last_pos[0], last_pos[1], (1, -1), connect_length):
             line_to_check = self.find_line(board, point, (-1, 1), connect_length)
-            # print(f"{point}: {line_to_check}")
-            # print(set(line_to_check) == {turn})
             if set(line_to_check) == {turn}:
                 return True
 
         # checks vertical line
         line_to_check = self.find_line(board, last_pos, (1, 0), connect_length)
-        # print(f"{point}: {line_to_check}")
-        # print(set(line_to_check) == {turn})
         if set(line_to_check) == {turn}:
                 return True
-        
-        # for c in range(COLUMN_COUNT-3):
-        #     for r in range(ROW_COUNT):
-        #         if board[r][c] == turn and board[r][c+1] == turn and board[r][c+2] == turn and board[r][c+3] == turn:
-        #             return True
-
-        # for c in range(COLUMN_COUNT):
-        #     for r in range(ROW_COUNT-3):
-        #         if board[r][c] == turn and board[r+1][c] == turn and board[r+2][c] == turn and board[r+3][c] == turn:
-        #             return True
-
-        # for c in range(COLUMN_COUNT-3):
-        #     for r in range(ROW_COUNT-3):
-        #         if board[r][c] == turn and board[r+1][c+1] == turn and board[r+2][c+2] == turn and board[r+3][c+3] == turn:
-        #             return True
-
-        # for c in range(COLUMN_COUNT-3):
-        #     for r in range(3, ROW_COUNT):
-        #         if board[r][c] == turn and board[r-1][c+1] == turn and board[r-2][c+2] == turn and board[r-3][c+3] == turn:
-        #             return True
-
 
 
     def switch_turn(self):  
