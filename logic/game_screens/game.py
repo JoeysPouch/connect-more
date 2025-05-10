@@ -1,5 +1,6 @@
 import pygame
 import sys
+import random
 sys.path.append(".")
 from logic.components.player import Player
 from logic.components.board import Board
@@ -7,6 +8,10 @@ from logic.components.disc import Disc
 from logic.components.sounds import Sounds
 from logic.components.tool import Tool
 from logic.config import ROW_COUNT, COLUMN_COUNT, SQUARE_SIZE
+
+TOOL_CHANCE = 0.1
+ELIGIBLE_TOOLS = [1,2,3,4]
+VISIBLE_TOOLS = True
 
 # This contains the main game handling and data
 class Game:
@@ -24,12 +29,22 @@ class Game:
         self.window = pygame.display.set_mode(size)
         self.position = (0,0)
         self.pieces = 0
-        self.tool_locations = {
-            (1,4):Tool(1, 4, True, False, False, True),
-            (3,2):Tool(2, 3, True, True, True, False), 
-            (4,1):Tool(3, 1.5, True, True, True, True), 
-            (5,3):Tool(4, 0, True, False, False, False)
-        }
+
+        # Generate tools
+        self.tool_locations = {}
+
+        for row in range(1, ROW_COUNT):
+            for col in range(0, COLUMN_COUNT):
+                if random.random() < TOOL_CHANCE * (1 - row / ROW_COUNT):
+                    tool_to_add = random.choice(ELIGIBLE_TOOLS)
+                    if tool_to_add == 1:
+                        self.tool_locations[(col, row)] = Tool(1, 4, True, False, False, True)
+                    elif tool_to_add == 2:
+                        self.tool_locations[(col, row)] = Tool(2, 3, True, True, True, False)
+                    elif tool_to_add == 3:
+                        self.tool_locations[(col, row)] = Tool(3, 1.5, True, True, True, True)
+                    elif tool_to_add == 4:
+                        self.tool_locations[(col, row)] = Tool(4, 0, True, False, False, False)
 
         # Main Game Audio Setup
         self.audio = {'menu': Sounds(True, False, 'menu_music').upload_sound(),
@@ -228,7 +243,7 @@ class Render:
                 self.placed_disc = Disc(r, c, self.players, board[r][c], self.background_colour)
                 self.placed_disc.get_colour()
                 pygame.draw.circle(self.window, self.placed_disc.colour, self.placed_disc.position, self.placed_disc.radius)
-                if (c,ROW_COUNT - r - 1) in self.tool_locations:
+                if (c,ROW_COUNT - r - 1) in self.tool_locations and VISIBLE_TOOLS:
                     pygame.draw.circle(self.window, "white", self.placed_disc.position, self.placed_disc.radius / 3)
 
     def draw_mouse_disc(self, turn, position, tool):           
