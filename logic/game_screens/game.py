@@ -66,7 +66,7 @@ class TurnManager:
         self.position = position
         self.attempt = False
         self.game_over = False
-        self.selection = 0
+        self.selection = (-1, -1)
         self.players = [player_1, player_2]
         self.current_player = player_1
         self.tool_index = 0
@@ -93,7 +93,7 @@ class TurnManager:
 
                     self.game_board.flip_board()
 
-                    # print(self.game_board.board)
+                    print(self.game_board.board)
 
                     if current_tool.single_use:
                         del self.current_player.tools[self.tool_index] 
@@ -103,7 +103,7 @@ class TurnManager:
                     if current_tool.id == 4:
                         self.current_player.tools = [Tool(-1, held_tile_id, True, True, False, True)] + self.current_player.tools
 
-                    if self.winning_move(self.game_board.board, self.current_player.id):  
+                    if self.winning_move(self.game_board.board, self.current_player.id, (ROW_COUNT - position[1] - 1, position[0])):  
                         self.game_over = True
                     
                     if current_tool.ends_turn:
@@ -112,9 +112,58 @@ class TurnManager:
                     else:
                         self.tool_used = True
 
+
+    def find_line(self, board, pos, vector, length):
+        line = []
+        for k in range(length):
+            if pos[0]+k*vector[0] < 0 or pos[1]+k*vector[1] < 0:
+                return [False]
+            if pos[0]+k*vector[0] >= ROW_COUNT or pos[1]+k*vector[1] >= COLUMN_COUNT:
+                return [False]
+            next_letter = int(board[pos[0]+k*vector[0]][pos[1]+k*vector[1]])
+            line.append(next_letter)
+        return line
+    
+    def start_points(self, row, column, vector, length):
+        points = []
+        for i in range(length):
+            points.append((row + i*vector[0], column + i*vector[1]))
+        return points
+
              
     # Checks if the last move created a win. this is an absolute garbage algorithm i stole from youtube
-    def winning_move(self, board, turn):
+    def winning_move(self, board, turn, last_pos):
+
+        connect_length = 4  # to be replaced with NUMBER_TO_WIN
+        print(last_pos)
+
+        # checks top left to bottom right diagoanals
+        print("--POSITIVE DIAGONALS--")
+        for point in self.start_points(last_pos[0], last_pos[1], (-1, -1), connect_length):
+            line_to_check = self.find_line(board, point, (1, 1), connect_length)
+            print(f"{point}: {line_to_check}")
+            print(set(line_to_check) == {turn})
+        
+        # checks horizontal lines
+        print("--HORIZONTALS--")
+        for c in range(last_pos[1] - connect_length + 1, last_pos[1] + 1):
+            line_to_check = self.find_line(board, (last_pos[0], c), (0, 1), connect_length)
+            print(f"{point}: {line_to_check}")
+            print(set(line_to_check) == {turn})
+        
+        # checks bottom left to top right
+        print("--NEGATIVE DIAGONALS--")
+        for point in self.start_points(last_pos[0], last_pos[1], (1, -1), connect_length):
+            line_to_check = self.find_line(board, point, (-1, 1), connect_length)
+            print(f"{point}: {line_to_check}")
+            print(set(line_to_check) == {turn})
+
+        # checks vertical line
+        print("--VERTICAL--")
+        line_to_check = self.find_line(board, last_pos, (1, 0), connect_length)
+        print(f"{point}: {line_to_check}")
+        print(set(line_to_check) == {turn})
+        
         for c in range(COLUMN_COUNT-3):
             for r in range(ROW_COUNT):
                 if board[r][c] == turn and board[r][c+1] == turn and board[r][c+2] == turn and board[r][c+3] == turn:
@@ -134,6 +183,13 @@ class TurnManager:
             for r in range(3, ROW_COUNT):
                 if board[r][c] == turn and board[r-1][c+1] == turn and board[r-2][c+2] == turn and board[r-3][c+3] == turn:
                     return True
+                
+        # vectors = [(1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1), (0, -1), (1, -1)]
+        # print(f"---LINES AROUND ({last_pos[0]}, {last_pos[1]})")
+        # for vector in vectors:
+        #     print(f"{vector}: {self.find_line(board, last_pos, vector, connect_length)}")
+
+
 
     def switch_turn(self):  
         self.current_player = self.players[0] if self.current_player == self.players[1] else self.players[1]
