@@ -1,7 +1,1 @@
-ROW_COUNT = 6
-COLUMN_COUNT = 7
-SQUARE_SIZE = min(700/(ROW_COUNT + 1), 1400/COLUMN_COUNT)
-TOOL_IDS = [0,1,2,3,4]
-NUMBER_TO_WIN = 4
-SETS_TO_WIN = 1
-TOOL_FREQUENCY = "Medium"
+config_variables = {'row_count': 10, 'column_count': 10, 'square_size': 63.63636363636363, 'eligible_tools': [0, 2, 3, 4], 'number_to_win': 5, 'sets_to_win': 1, 'bullet_mode': False, 'visible_tools': True, 'tool_chance': 0.15, 'start_game': True}

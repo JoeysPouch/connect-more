@@ -7,11 +7,19 @@ from logic.components.board import Board
 from logic.components.disc import Disc
 from logic.components.sounds import Sounds
 from logic.components.tool import Tool
-from logic.config import ROW_COUNT, COLUMN_COUNT, SQUARE_SIZE, TOOL_IDS, NUMBER_TO_WIN
+from logic.game_screens.menu import config_variables
 
-TOOL_CHANCE = 0.1
-ELIGIBLE_TOOLS = [4]
-VISIBLE_TOOLS = True
+ROW_COUNT = config_variables["row_count"]
+COLUMN_COUNT = config_variables["column_count"]
+SQUARE_SIZE = config_variables["square_size"]
+ELIGIBLE_TOOLS = config_variables["eligible_tools"]
+NUMBER_TO_WIN = config_variables["number_to_win"]
+SETS_TO_WIN = config_variables["sets_to_win"]
+BULLET_MODE = config_variables["bullet_mode"]
+TOOL_CHANCE = config_variables["tool_chance"]
+VISIBLE_TOOLS = config_variables["visible_tools"]
+START_GAME = config_variables["start_game"]
+
 
 # This contains the main game handling and data
 class Game:
@@ -166,11 +174,11 @@ class TurnManager:
             points.append((row + i*vector[0], column + i*vector[1]))
         return points
 
-             
+        
     # Checks if the last move created a win
     def winning_move(self, board, turn, last_pos):
 
-        connect_length = 4  # to be replaced with NUMBER_TO_WIN
+        connect_length = NUMBER_TO_WIN  # to be replaced with NUMBER_TO_WIN
 
         # checks top left to bottom right diagoanals
         for point in self.start_points(last_pos[0], last_pos[1], (-1, -1), connect_length):
