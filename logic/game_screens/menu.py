@@ -129,7 +129,7 @@ class Button:
             config_variables["visible_tools"] = True
 
         if self.name == "Start":
-            config_variables["square_size"] = min(700/(config_variables["row_count"] + 1), 1400/config_variables["column_count"])
+            config_variables["square_size"] = min(500/config_variables["row_count"], 1000/config_variables["column_count"])
             config_variables["start_game"] = True
             write_to_config(config_variables)
             print(config_variables)
