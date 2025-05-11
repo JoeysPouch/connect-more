@@ -33,18 +33,19 @@ class Game:
         # Generate tools
         self.tool_locations = {}
 
-        for row in range(1, ROW_COUNT):
-            for col in range(0, COLUMN_COUNT):
-                if random.random() < TOOL_CHANCE * (1 - row / ROW_COUNT):
-                    tool_to_add = random.choice(ELIGIBLE_TOOLS)
-                    if tool_to_add == 1:
-                        self.tool_locations[(col, row)] = Tool(1, 4, True, False, False, True)
-                    elif tool_to_add == 2:
-                        self.tool_locations[(col, row)] = Tool(2, 3, True, True, True, False)
-                    elif tool_to_add == 3:
-                        self.tool_locations[(col, row)] = Tool(3, 1.5, True, True, True, True)
-                    elif tool_to_add == 4:
-                        self.tool_locations[(col, row)] = Tool(4, 0, True, False, False, False)
+        if len(ELIGIBLE_TOOLS) > 0:
+            for row in range(1, ROW_COUNT):
+                for col in range(0, COLUMN_COUNT):
+                    if random.random() < TOOL_CHANCE * (1 - row / ROW_COUNT):
+                        tool_to_add = random.choice(ELIGIBLE_TOOLS)
+                        if tool_to_add == 1:
+                            self.tool_locations[(col, row)] = Tool(1, 4, True, False, False, True, False)
+                        elif tool_to_add == 2:
+                            self.tool_locations[(col, row)] = Tool(2, 3, True, True, True, False, False)
+                        elif tool_to_add == 3:
+                            self.tool_locations[(col, row)] = Tool(3, 1.5, True, True, True, True, False)
+                        elif tool_to_add == 4:
+                            self.tool_locations[(col, row)] = Tool(4, 0, True, False, False, False, False)
 
         # Main Game Audio Setup
         self.audio = {'menu': Sounds(True, False, 'menu_music').upload_sound(),
@@ -67,8 +68,8 @@ class Game:
 
         # Initialises other classes
         self.game_board = Board()
-        self.player_1 = Player(1, "Player 1", (255,0,0), [Tool(0, 1.5, False, True, False, True)])
-        self.player_2 = Player(2, "Player 2", (255,255,0), [Tool(0, 1.5, False, True, False, True)])
+        self.player_1 = Player(1, "Player 1", (255,0,0), [Tool(0, 1.5, False, True, False, True, False)])
+        self.player_2 = Player(2, "Player 2", (255,255,0), [Tool(0, 1.5, False, True, False, True, False)])
         self.turn_manager = TurnManager(self.game_board, self.position, self.player_1, self.player_2, self.tool_locations)
         self.event_handler = EventHandler(self)
         self.renderer = Render(self.window, self.square_size, self.background_colour, self.player_1, self.player_2, self.tool_locations)
@@ -129,7 +130,7 @@ class TurnManager:
                     self.tool_index = 0
 
                     if current_tool.id == 4:
-                        self.current_player.tools = [Tool(-1, held_tile_id, True, True, False, True)] + self.current_player.tools
+                        self.current_player.tools = [Tool(-1, held_tile_id, True, True, False, True, False)] + self.current_player.tools
 
                     if current_tool.id == -1 and current_tool.tile_id != self.current_player.id and current_tool.tile_id in (1,2):
                         if self.winning_move(self.game_board.board, current_tool.tile_id, (ROW_COUNT - position[1] - 1, position[0])):  
@@ -277,22 +278,46 @@ class Render:
         pygame.draw.rect(self.window, (0, 0, 255), (0, self.square_size, self.square_size * COLUMN_COUNT, self.square_size * ROW_COUNT))
         for c in range(COLUMN_COUNT):
             for r in range(ROW_COUNT):
-                self.placed_disc = Disc(r, c, self.players, board[r][c], self.background_colour)
-                self.placed_disc.get_colour()
-                pygame.draw.circle(self.window, self.placed_disc.colour, self.placed_disc.position, self.placed_disc.radius)
+                # self.placed_disc = Disc(r, c, self.players, board[r][c], self.background_colour)
+                # self.placed_disc.get_colour()
+                # pygame.draw.circle(self.window, self.placed_disc.colour, self.placed_disc.position, self.placed_disc.radius)
+                # if (c,ROW_COUNT - r - 1) in self.tool_locations and VISIBLE_TOOLS:
+                #     pygame.draw.circle(self.window, "white", self.placed_disc.position, self.placed_disc.radius / 3)
+
+                disc_colour = self.get_colour(board[r][c])
+                disc_pos = SQUARE_SIZE * c + int(SQUARE_SIZE/2), SQUARE_SIZE * (r+1) + int(SQUARE_SIZE/2)
+                pygame.draw.circle(self.window, disc_colour, disc_pos, int(SQUARE_SIZE/2.5))
                 if (c,ROW_COUNT - r - 1) in self.tool_locations and VISIBLE_TOOLS:
-                    pygame.draw.circle(self.window, "white", self.placed_disc.position, self.placed_disc.radius / 3)
+                    pygame.draw.circle(self.window, "white", disc_pos, int(SQUARE_SIZE/7.5))
 
-    def draw_mouse_disc(self, turn, position, tool):           
-        if tool.single_tile:         
-            pygame.draw.circle(self.window, turn.colour, position, self.disc_size)
-            pygame.draw.circle(self.window, (0,0,0),  position, self.disc_size, max(int(self.disc_size/20), 1))
+    def draw_mouse_disc(self, turn, position, tool):      
+        if tool.mouse_sprite == False:   
+            if tool.single_tile:   
+                pygame.draw.circle(self.window, turn.colour if tool.tile_id == 1.5 else self.get_colour(tool.tile_id), position, self.disc_size)
+                pygame.draw.circle(self.window, (0,0,0),  position, self.disc_size, max(int(self.disc_size/20), 1))
+            else:
+                pygame.draw.circle(self.window, turn.colour if tool.tile_id == 1.5 else self.get_colour(tool.tile_id), (position[0], SQUARE_SIZE/2), self.disc_size)
+                pygame.draw.circle(self.window, (0,0,0),  (position[0], SQUARE_SIZE/2), self.disc_size, max(int(self.disc_size/20), 1))
         else:
-            pygame.draw.circle(self.window, turn.colour, (position[0], SQUARE_SIZE/2), self.disc_size)
-            pygame.draw.circle(self.window, (0,0,0),  (position[0], SQUARE_SIZE/2), self.disc_size, max(int(self.disc_size/20), 1))
-
+            if tool.single_tile: 
+                pass
+            else:
+                pass
+            
     def final_render(self):        
         pygame.display.flip()
+
+    def get_colour(self, tile_id):
+        if tile_id in (0,4):
+            return self.background_colour
+        elif tile_id == 1:
+            return self.players[0].colour
+        elif tile_id == 2:
+            return self.players[1].colour
+        elif tile_id == 3:
+            return (255 - self.background_colour[0], 255 - self.background_colour[1], 255 - self.background_colour[2])
+        else:
+            return (0,0,0)
 
 if __name__ == "__main__":
     Game()
