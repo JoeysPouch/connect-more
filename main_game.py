@@ -7,5 +7,3 @@ if __name__ == "__main__":
         print(start_game)
         pass
     Game()
-    
-
