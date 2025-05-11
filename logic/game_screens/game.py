@@ -56,23 +56,24 @@ class Game:
                             self.tool_locations[(col, row)] = Tool(4, 0, True, False, False, False, True)
 
         # Main Game Audio Setup
-        self.audio = {'menu': Sounds(True, False, 'menu_music').upload_sound(),
-                      'layer_1': Sounds(True, False, 'layer_1').upload_sound(),
-                      'layer_2': Sounds(True, False, 'layer_2').upload_sound(),
-                      'layer_3': Sounds(True, False, 'layer_3').upload_sound(),
-                      'layer_4': Sounds(True, False, 'layer_4').upload_sound(),
-                      'layer_5': Sounds(True, False, 'layer_5').upload_sound(),
-                      'layer_6': Sounds(True, False, 'layer_6').upload_sound(),                    
-                      'bomb': Sounds(False, True, 'bomb_sound').upload_sound(),
-                      'piece': Sounds(False, True, 'piece_sound').upload_sound(),
-                       }
+        if not BULLET_MODE:
+            self.audio = {'menu': Sounds(True, False, 'menu_music').upload_sound(),
+                        'layer_1': Sounds(True, False, 'layer_1').upload_sound(),
+                        'layer_2': Sounds(True, False, 'layer_2').upload_sound(),
+                        'layer_3': Sounds(True, False, 'layer_3').upload_sound(),
+                        'layer_4': Sounds(True, False, 'layer_4').upload_sound(),
+                        'layer_5': Sounds(True, False, 'layer_5').upload_sound(),
+                        'layer_6': Sounds(True, False, 'layer_6').upload_sound(),                    
+                        'bomb': Sounds(False, True, 'bomb_sound').upload_sound(),
+                        'piece': Sounds(False, True, 'piece_sound').upload_sound(),
+                        }
 
-        self.audio['layer_1'].set_volume(1.0)
-        self.audio['layer_1'].start(-1, fade_ms = 3000)
-        for layer in ['layer_2', 'layer_3', 'layer_4', 'layer_5', 'layer_6']:
-            self.audio[layer].start(-1, 0)
-            self.audio[layer].set_volume(0.0)
-        self.active_layers = set('layer_1')
+            self.audio['layer_1'].set_volume(1.0)
+            self.audio['layer_1'].start(-1, fade_ms = 3000)
+            for layer in ['layer_2', 'layer_3', 'layer_4', 'layer_5', 'layer_6']:
+                self.audio[layer].start(-1, 0)
+                self.audio[layer].set_volume(0.0)
+            self.active_layers = set('layer_1')
 
         # Initialises other classes
         self.game_board = Board()
@@ -80,7 +81,7 @@ class Game:
         self.player_2 = Player(2, "Player 2", (255,255,0), [Tool(0, 1.5, False, True, False, True, False)])
         self.turn_manager = TurnManager(self.game_board, self.position, self.player_1, self.player_2, self.tool_locations)
         self.event_handler = EventHandler(self)
-        self.renderer = Render(self.window, self.square_size, self.background_colour, self.player_1, self.player_2, self.tool_locations)
+        self.renderer = Render(self.window, self.square_size, self.background_colour, self.player_1, self.player_2, self.tool_locations, size)
 
         self.game_loop()
     
@@ -108,6 +109,9 @@ class TurnManager:
     def player_turn(self):
         if not self.game_over:
             if self.attempt:
+                if self.number_of_turns == 0 and BULLET_MODE:
+                    pygame.mixer.music.load(f'./assets/sound/bullet_mode.mp3')
+                    pygame.mixer.music.play(-1)
                 current_tool = self.current_player.tools[self.tool_index]
                 if self.game_board.is_valid_location(self.selection, current_tool):
                     self.game_board.flip_board()
@@ -227,18 +231,20 @@ class EventHandler:
                 self.mouse_movement(event)
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE and not self.game.turn_manager.tool_used:
                 self.switch_tool(self.game.turn_manager.tool_index)
-
-        for layer in ['layer_2', 'layer_3', 'layer_4', 'layer_5', 'layer_6']:
-            if self.game.audio[layer].increasing:
-                self.game.audio[layer].increase_volume(0.0005)
+                
+        if not BULLET_MODE:
+            for layer in ['layer_2', 'layer_3', 'layer_4', 'layer_5', 'layer_6']:
+                if self.game.audio[layer].increasing:
+                    self.game.audio[layer].increase_volume(0.0005)
 
     def clicks(self, event):
         if not self.game.turn_manager.game_over:
             self.game.turn_manager.attempt = True
             self.game.turn_manager.selection = (int(self.game.position[0]/self.game.square_size) - 1, int(self.game.position[1]/self.game.square_size) - 1)
             self.game.turn_manager.player_turn()
-            self.game.audio['piece'].start()
-            self.music()
+            if not BULLET_MODE:
+                self.game.audio['piece'].start()
+                self.music()
             self.game.attempt = False
 
     def mouse_movement(self, event):
@@ -270,7 +276,7 @@ class EventHandler:
 
 # For rendering and graphical type things
 class Render:
-    def __init__(self, window, square_size, background_colour, player_1, player_2, tool_locations):
+    def __init__(self, window, square_size, background_colour, player_1, player_2, tool_locations, size):
         self.window = window
         self.square_size = square_size
         self.disc_size = int(self.square_size / 2.5)
@@ -280,10 +286,14 @@ class Render:
         self.images = {
             "4_mouse_sprite" : pygame.image.load("./assets/images/magnet.png")
         }
+        self.size = size
 
     def render(self, board, turn, position, tool):
         self.draw_board(board, turn, position)
         self.draw_mouse_disc(turn, position, tool)
+        if BULLET_MODE:
+            self.draw_timer(1, 30)
+            self.draw_timer(2, 30)
         self.final_render()
 
     def draw_board(self, board, turn, position):
@@ -316,6 +326,11 @@ class Render:
                 self.window.blit(self.images[f"{tool.id}_mouse_sprite"], (position[0] - SQUARE_SIZE / 2, position[1] - SQUARE_SIZE / 2))
             else:
                 self.window.blit(self.images[f"{tool.id}_mouse_sprite"], (position[0] - SQUARE_SIZE / 2, SQUARE_SIZE/10))
+
+    def draw_timer(self, player_id, time):
+        font = pygame.font.SysFont("arialblack", 20)
+        number_text = font.render(f"Player {player_id}: 0:{time}", True, (255, 255, 255))
+        self.window.blit(number_text, (10, 30 * player_id + (self.size[1]-100)))
 
     def final_render(self):        
         pygame.display.flip()
