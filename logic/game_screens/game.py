@@ -30,7 +30,7 @@ class Game:
 
         # Basic Screen Information and Logic
         self.square_size = SQUARE_SIZE
-        screen_height = self.square_size * (ROW_COUNT + 2)
+        screen_height = self.square_size * (ROW_COUNT + 1) + 100
         screen_width = self.square_size * (COLUMN_COUNT + 2)
         size = (screen_width, screen_height)
         self.background_colour = (69,255,69)
