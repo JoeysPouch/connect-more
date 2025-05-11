@@ -9,8 +9,8 @@ from logic.components.sounds import Sounds
 from logic.components.tool import Tool
 from logic.config import ROW_COUNT, COLUMN_COUNT, SQUARE_SIZE, TOOL_IDS, NUMBER_TO_WIN
 
-TOOL_CHANCE = 0.1
-ELIGIBLE_TOOLS = [1,2,3,4]
+TOOL_CHANCE = 0.8
+ELIGIBLE_TOOLS = [4]
 VISIBLE_TOOLS = True
 
 # This contains the main game handling and data
@@ -131,7 +131,10 @@ class TurnManager:
                     if current_tool.id == 4:
                         self.current_player.tools = [Tool(-1, held_tile_id, True, True, False, True)] + self.current_player.tools
 
-                    if self.winning_move(self.game_board.board, self.current_player.id, (ROW_COUNT - position[1] - 1, position[0])):  
+                    if current_tool.id == -1 and current_tool.tile_id != self.current_player.id and current_tool.tile_id in (1,2):
+                        if self.winning_move(self.game_board.board, current_tool.tile_id, (ROW_COUNT - position[1] - 1, position[0])):  
+                            self.game_over = True
+                    elif self.winning_move(self.game_board.board, self.current_player.id, (ROW_COUNT - position[1] - 1, position[0])):  
                         self.game_over = True
                     
                     if current_tool.ends_turn:
