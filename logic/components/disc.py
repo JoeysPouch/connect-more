@@ -1,6 +1,8 @@
 import sys
 sys.path.append(".")
-from logic.config import SQUARE_SIZE
+from logic.config import config_variables
+
+SQUARE_SIZE = config_variables["square_size"]
 
 class Disc:
     def __init__(self, row, col, players, board_value, background_colour):

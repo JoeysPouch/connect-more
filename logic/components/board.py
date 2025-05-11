@@ -1,7 +1,10 @@
 import numpy as np
 import sys
 sys.path.append(".")
-from logic.config import ROW_COUNT, COLUMN_COUNT
+from logic.config import config_variables
+
+ROW_COUNT = config_variables["row_count"]
+COLUMN_COUNT = config_variables["column_count"]
 
 class Board:
     def __init__(self):

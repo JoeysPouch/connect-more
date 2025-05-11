@@ -1,0 +1,1 @@
+config_variables = {'row_count': 6, 'column_count': 6, 'square_size': 100.0, 'eligible_tools': [0, 3, 4, 2], 'number_to_win': 4, 'sets_to_win': 1, 'bullet_mode': False, 'visible_tools': False, 'tool_chance': 0.1, 'start_game': True}
