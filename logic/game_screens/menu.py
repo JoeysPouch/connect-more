@@ -15,7 +15,7 @@ config_variables = {
 
 pygame.init()
 
-menu_music = pygame.mixer.music.load(f'./assets/sound/menu_music.wav')
+pygame.mixer.music.load(f'./assets/sound/menu_music.wav')
 pygame.mixer.music.play(-1)
 square_size = config_variables["square_size"]
 SCREEN_HEIGHT = 640
@@ -247,7 +247,7 @@ def run_menu():
                 clicks(event)
 
         if config_variables["start_game"]:
-            pygame.mixer.music.fadeout(2000)
+            pygame.mixer.music.fadeout(1500)
             return
         
         pygame.display.flip()
