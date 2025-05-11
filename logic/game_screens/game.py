@@ -131,7 +131,10 @@ class TurnManager:
                     if current_tool.id == 4:
                         self.current_player.tools = [Tool(-1, held_tile_id, True, True, False, True)] + self.current_player.tools
 
-                    if self.winning_move(self.game_board.board, self.current_player.id, (ROW_COUNT - position[1] - 1, position[0])):  
+                    if current_tool.id == -1 and current_tool.tile_id != self.current_player.id and current_tool.tile_id in (1,2):
+                        if self.winning_move(self.game_board.board, current_tool.tile_id, (ROW_COUNT - position[1] - 1, position[0])):  
+                            self.game_over = True
+                    elif self.winning_move(self.game_board.board, self.current_player.id, (ROW_COUNT - position[1] - 1, position[0])):  
                         self.game_over = True
                     
                     if current_tool.ends_turn:
