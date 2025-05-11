@@ -81,7 +81,7 @@ class Game:
         self.player_2 = Player(2, "Player 2", (255,255,0), [Tool(0, 1.5, False, True, False, True, False)])
         self.turn_manager = TurnManager(self.game_board, self.position, self.player_1, self.player_2, self.tool_locations)
         self.event_handler = EventHandler(self)
-        self.renderer = Render(self.window, self.square_size, self.background_colour, self.player_1, self.player_2, self.tool_locations)
+        self.renderer = Render(self.window, self.square_size, self.background_colour, self.player_1, self.player_2, self.tool_locations, size)
 
         self.game_loop()
     
@@ -273,7 +273,7 @@ class EventHandler:
 
 # For rendering and graphical type things
 class Render:
-    def __init__(self, window, square_size, background_colour, player_1, player_2, tool_locations):
+    def __init__(self, window, square_size, background_colour, player_1, player_2, tool_locations, size):
         self.window = window
         self.square_size = square_size
         self.disc_size = int(self.square_size / 2.5)
@@ -283,12 +283,14 @@ class Render:
         self.images = {
             "4_mouse_sprite" : pygame.image.load("./assets/images/magnet.png")
         }
+        self.size = size
 
     def render(self, board, turn, position, tool):
         self.draw_board(board, turn, position)
         self.draw_mouse_disc(turn, position, tool)
-        self.draw_timer(1, 30)
-        self.draw_timer(2, 30)
+        if BULLET_MODE:
+            self.draw_timer(1, 30)
+            self.draw_timer(2, 30)
         self.final_render()
 
     def draw_board(self, board, turn, position):
@@ -325,7 +327,7 @@ class Render:
     def draw_timer(self, player_id, time):
         font = pygame.font.SysFont("arialblack", 20)
         number_text = font.render(f"Player {player_id}: 0:{time}", True, (255, 255, 255))
-        self.window.blit(number_text, (10, 10 + 30 * player_id))
+        self.window.blit(number_text, (10, 30 * player_id + (self.size[1]-100)))
 
     def final_render(self):        
         pygame.display.flip()
