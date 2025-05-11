@@ -10,7 +10,7 @@ from logic.components.tool import Tool
 from logic.config import ROW_COUNT, COLUMN_COUNT, SQUARE_SIZE, TOOL_IDS, NUMBER_TO_WIN
 
 TOOL_CHANCE = 0.1
-ELIGIBLE_TOOLS = [1,2,3,4]
+ELIGIBLE_TOOLS = [4]
 VISIBLE_TOOLS = True
 
 # This contains the main game handling and data
@@ -45,7 +45,7 @@ class Game:
                         elif tool_to_add == 3:
                             self.tool_locations[(col, row)] = Tool(3, 1.5, True, True, True, True, False)
                         elif tool_to_add == 4:
-                            self.tool_locations[(col, row)] = Tool(4, 0, True, False, False, False, False)
+                            self.tool_locations[(col, row)] = Tool(4, 0, True, False, False, False, True)
 
         # Main Game Audio Setup
         self.audio = {'menu': Sounds(True, False, 'menu_music').upload_sound(),
@@ -266,7 +266,9 @@ class Render:
         self.background_colour = background_colour
         self.players = [player_1, player_2]
         self.tool_locations = tool_locations
-
+        self.images = {
+            "4_mouse_sprite" : pygame.image.load("./assets/images/magnet.png")
+        }
 
     def render(self, board, turn, position, tool):
         self.draw_board(board, turn, position)
@@ -300,10 +302,10 @@ class Render:
                 pygame.draw.circle(self.window, (0,0,0),  (position[0], SQUARE_SIZE/2), self.disc_size, max(int(self.disc_size/20), 1))
         else:
             if tool.single_tile: 
-                pass
+                self.window.blit(self.images[f"{tool.id}_mouse_sprite"], (position[0] - SQUARE_SIZE / 2, position[1] - SQUARE_SIZE / 2))
             else:
-                pass
-            
+                self.window.blit(self.images[f"{tool.id}_mouse_sprite"], (position[0] - SQUARE_SIZE / 2, SQUARE_SIZE/10))
+
     def final_render(self):        
         pygame.display.flip()
 

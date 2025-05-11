@@ -6,7 +6,7 @@ class Tool:
         self.ends_turn = ends_turn # If false, turn doesn't end but only default tool can be used after another tool
         self.single_tile = single_tile # If true, tool affects a single tile rather than a column
         self.requires_empty = requires_empty  # If true, tool can only be played in empty spot. If false, tool cannot be played in empty spot
-        self.mouse_sprite = False # If False, will use a circle with colour corresponding to tile_id
+        self.mouse_sprite = mouse_sprite # If true, uses sprite from Render.images. If false, uses a circle with colour corresponding to tile_id
 
     def check_surrounding_tiles(self, pos, board):
         for row in range(max(0, pos[1] - 1), min(len(board), pos[1] + 2)):
