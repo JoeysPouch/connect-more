@@ -49,7 +49,7 @@ class Game:
                         if tool_to_add == 1:
                             self.tool_locations[(col, row)] = Tool(1, 4, True, False, False, True, False)
                         elif tool_to_add == 2:
-                            self.tool_locations[(col, row)] = Tool(2, 3, True, True, True, False, False)
+                            self.tool_locations[(col, row)] = Tool(2, 3, True, True, True, False, True)
                         elif tool_to_add == 3:
                             self.tool_locations[(col, row)] = Tool(3, 1.5, True, True, True, True, False)
                         elif tool_to_add == 4:
@@ -285,6 +285,7 @@ class Render:
         self.players = [player_1, player_2]
         self.tool_locations = tool_locations
         self.images = {
+            "2_mouse_sprite" : pygame.transform.scale(pygame.image.load("./assets/images/bomb.png"), (SQUARE_SIZE * 0.8, SQUARE_SIZE * 0.8)),
             "4_mouse_sprite" : pygame.transform.scale(pygame.image.load("./assets/images/magnet.png"), (SQUARE_SIZE * 0.8, SQUARE_SIZE * 0.8))
         }
         self.size = size

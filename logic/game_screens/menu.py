@@ -148,8 +148,8 @@ connect5_button = Button("Connect 5", [130, 250, 60, 60], False, "5", True)
 connect6_button = Button("Connect 6", [210, 250, 60, 60], False, "6", True)
 
 bomb_button = Button("Bomb", [50, 400, 60, 60], False, f"./assets/images/bomb.png", True)
-floating_tile_button = Button("Floating Tile", [130, 400, 60, 60], False, f"./assets/images/bomb.png", True)
-magnet_button = Button("Magnet", [210, 400, 60, 60], False, f"./assets/images/bomb.png", True)
+floating_tile_button = Button("Floating Tile", [130, 400, 60, 60], False, f"./assets/images/float.png", True)
+magnet_button = Button("Magnet", [210, 400, 60, 60], False, f"./assets/images/magnet.png", True)
 visible_tools = Button("Items Visible", [290, 400, 60, 60], True, "", True)
 
 set1_button = Button("1 Set", [450, 250, 60, 60], True, "1", True)
