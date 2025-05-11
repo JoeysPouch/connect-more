@@ -1,7 +1,7 @@
 import numpy as np
 import sys
 sys.path.append(".")
-from logic.config import config_variables
+from logic.game_screens.menu import config_variables
 
 ROW_COUNT = config_variables["row_count"]
 COLUMN_COUNT = config_variables["column_count"]
@@ -16,9 +16,7 @@ class Board:
     # Checks whether click location is valid for current tool
     def is_valid_location(self, pos, tool): 
         if tool.single_tile:
-            if pos[1] < 0:
-                return False
-            elif tool.id == 3:
+            if tool.id == 3:
                 return tool.check_surrounding_tiles(pos, self.board)
             elif tool.requires_empty:
                 return self.board[pos[1]][pos[0]] == 0
