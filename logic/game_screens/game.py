@@ -30,12 +30,12 @@ class Game:
 
         # Basic Screen Information and Logic
         self.square_size = SQUARE_SIZE
-        screen_height = self.square_size * (ROW_COUNT + 1)
-        screen_width = self.square_size * COLUMN_COUNT
+        screen_height = self.square_size * (ROW_COUNT + 2)
+        screen_width = self.square_size * (COLUMN_COUNT + 2)
         size = (screen_width, screen_height)
         self.background_colour = (69,255,69)
         self.window = pygame.display.set_mode(size)
-        self.position = (0,0)
+        self.position = (screen_width / 2, screen_height / 2)
         self.pieces = 0
 
         # Generate tools
@@ -235,7 +235,7 @@ class EventHandler:
     def clicks(self, event):
         if not self.game.turn_manager.game_over:
             self.game.turn_manager.attempt = True
-            self.game.turn_manager.selection = (int(event.pos[0]/self.game.square_size), int(event.pos[1]/self.game.square_size) - 1)
+            self.game.turn_manager.selection = (int(self.game.position[0]/self.game.square_size) - 1, int(self.game.position[1]/self.game.square_size) - 1)
             self.game.turn_manager.player_turn()
             self.game.audio['piece'].start()
             self.music()
@@ -243,7 +243,10 @@ class EventHandler:
 
     def mouse_movement(self, event):
         if not self.game.turn_manager.game_over:
-            self.game.position = event.pos
+            self.game.position = (
+                min(max(event.pos[0], SQUARE_SIZE * 1.5), SQUARE_SIZE * (COLUMN_COUNT + 0.5)),
+                min(max(event.pos[1], SQUARE_SIZE * 1.5), SQUARE_SIZE * (ROW_COUNT + 0.5))
+            )
 
 
     def music(self):
@@ -285,7 +288,7 @@ class Render:
 
     def draw_board(self, board, turn, position):
         self.window.fill(self.background_colour)
-        pygame.draw.rect(self.window, (0, 0, 255), (0, self.square_size, self.square_size * COLUMN_COUNT, self.square_size * ROW_COUNT))
+        pygame.draw.rect(self.window, (0, 0, 255), (self.square_size, self.square_size, self.square_size * COLUMN_COUNT, self.square_size * ROW_COUNT))
         for c in range(COLUMN_COUNT):
             for r in range(ROW_COUNT):
                 # self.placed_disc = Disc(r, c, self.players, board[r][c], self.background_colour)
@@ -295,7 +298,7 @@ class Render:
                 #     pygame.draw.circle(self.window, "white", self.placed_disc.position, self.placed_disc.radius / 3)
 
                 disc_colour = self.get_colour(board[r][c])
-                disc_pos = SQUARE_SIZE * c + int(SQUARE_SIZE/2), SQUARE_SIZE * (r+1) + int(SQUARE_SIZE/2)
+                disc_pos = SQUARE_SIZE * (c+1) + int(SQUARE_SIZE/2), SQUARE_SIZE * (r+1) + int(SQUARE_SIZE/2)
                 pygame.draw.circle(self.window, disc_colour, disc_pos, int(SQUARE_SIZE/2.5))
                 if (c,ROW_COUNT - r - 1) in self.tool_locations and VISIBLE_TOOLS:
                     pygame.draw.circle(self.window, "white", disc_pos, int(SQUARE_SIZE/7.5))
