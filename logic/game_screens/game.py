@@ -231,6 +231,7 @@ class EventHandler:
                 self.mouse_movement(event)
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE and not self.game.turn_manager.tool_used:
                 self.switch_tool(self.game.turn_manager.tool_index)
+            
                 
         if not BULLET_MODE:
             for layer in ['layer_2', 'layer_3', 'layer_4', 'layer_5', 'layer_6']:
