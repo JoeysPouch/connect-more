@@ -278,7 +278,7 @@ class Render:
         self.players = [player_1, player_2]
         self.tool_locations = tool_locations
         self.images = {
-            "4_mouse_sprite" : pygame.image.load("./assets/images/magnet.png")
+            "4_mouse_sprite" : pygame.transform.scale(pygame.image.load("./assets/images/magnet.png"), (SQUARE_SIZE * 0.8, SQUARE_SIZE * 0.8))
         }
 
     def render(self, board, turn, position, tool):
