@@ -9,8 +9,8 @@ from logic.components.sounds import Sounds
 from logic.components.tool import Tool
 from logic.config import ROW_COUNT, COLUMN_COUNT, SQUARE_SIZE, TOOL_IDS, NUMBER_TO_WIN
 
-TOOL_CHANCE = 0.8
-ELIGIBLE_TOOLS = [4]
+TOOL_CHANCE = 0.1
+ELIGIBLE_TOOLS = [1,2,3,4]
 VISIBLE_TOOLS = True
 
 # This contains the main game handling and data
