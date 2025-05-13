@@ -4,3 +4,6 @@ class Player:
         self.player_name = player_name
         self.colour = colour
         self.tools = tools
+        self.time = 30
+        self.ticks = 0
+        self.won = False
