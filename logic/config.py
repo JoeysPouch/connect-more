@@ -1,1 +1,1 @@
-config_variables = {'row_count': 6, 'column_count': 6, 'square_size': 83.33333333333333, 'eligible_tools': [0], 'number_to_win': 4, 'sets_to_win': 1, 'bullet_mode': True, 'visible_tools': True, 'tool_chance': 0.1, 'start_game': True}
+

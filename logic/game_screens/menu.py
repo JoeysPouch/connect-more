@@ -112,21 +112,21 @@ class Button:
             set1_button.status = False
             set2_button.status = False
         if self.name == "Low Frequency":
-            config_variables["tool_frequency"] = 0.05
+            config_variables["tool_frequency"] = 0.1
             medium_freq_button.status = False
             high_freq_button.status = False
         if self.name == "Medium Frequency":
-            config_variables["tool_chance"] = 0.1
+            config_variables["tool_chance"] = 0.15
             low_freq_button.status = False
             high_freq_button.status = False
         if self.name == "High Frequency":
-            config_variables["tool_chance"] = 0.15
+            config_variables["tool_chance"] = 0.20
             low_freq_button.status = False
             medium_freq_button.status = False
         if self.name == "Bullet Mode":
-            config_variables["bullet_mode"] = True
+            config_variables["bullet_mode"] = not config_variables["bullet_mode"]
         if self.name == "Items Visible":
-            config_variables["visible_tools"] = True
+            config_variables["visible_tools"] = not config_variables["visible_tools"]
 
         if self.name == "Start":
             config_variables["square_size"] = min(500/config_variables["row_count"], 1000/config_variables["column_count"])
@@ -150,7 +150,7 @@ connect6_button = Button("Connect 6", [210, 250, 60, 60], False, "6", True)
 bomb_button = Button("Bomb", [50, 400, 60, 60], False, f"./assets/images/bomb.png", True)
 floating_tile_button = Button("Floating Tile", [130, 400, 60, 60], False, f"./assets/images/bomb.png", True)
 magnet_button = Button("Magnet", [210, 400, 60, 60], False, f"./assets/images/bomb.png", True)
-visible_tools = Button("Items Visible", [290, 400, 60, 60], False, "", True)
+visible_tools = Button("Items Visible", [290, 400, 60, 60], True, "", True)
 
 set1_button = Button("1 Set", [450, 250, 60, 60], True, "1", True)
 set2_button = Button("2 Sets", [530, 250, 60, 60], False, "2", True)
