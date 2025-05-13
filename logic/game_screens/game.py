@@ -37,6 +37,7 @@ class Game:
         self.window = pygame.display.set_mode(size)
         self.position = (screen_width / 2, screen_height / 2)
         self.pieces = 0
+        self.clock = pygame.time.Clock()
 
         # Generate tools
         self.tool_locations = {}
@@ -84,12 +85,18 @@ class Game:
         self.renderer = Render(self.window, self.square_size, self.background_colour, self.player_1, self.player_2, self.tool_locations, size)
 
         self.game_loop()
+
     
     def game_loop(self):
         while True:
+            self.clock.tick(60)
+            self.turn_manager.timers()
             self.event_handler.events()
+            if BULLET_MODE:
+                if self.turn_manager.current_player.time == 0:
+                    self.turn_manager.other_player.won = True
+                    self.turn_manager.game_over = True
             self.renderer.render(self.game_board.board, self.turn_manager.current_player, self.position, self.turn_manager.current_player.tools[self.turn_manager.tool_index])
-
 
 class TurnManager:
     def __init__(self, board, position, player_1, player_2, tool_locations):
@@ -100,15 +107,26 @@ class TurnManager:
         self.selection = (-1, -1)
         self.players = [player_1, player_2]
         self.current_player = player_1
+        self.other_player = player_2 if self.current_player == player_1 else player_1
         self.tool_index = 0
         self.tool_used = False
         self.number_of_turns = 0
         self.remaining_drops = 1
         self.tool_locations = tool_locations
+        self.first_move_made = False
+
+    def timers(self):
+        if BULLET_MODE:
+            if self.first_move_made:
+                self.current_player.ticks += 1
+                if self.current_player.ticks % 60 == 0:
+                    self.current_player.time -= 1
+                    self.current_player.time = max(0, self.current_player.time)
 
     def player_turn(self):
         if not self.game_over:
             if self.attempt:
+                self.first_move_made = True
                 if self.number_of_turns == 0 and BULLET_MODE:
                     pygame.mixer.music.load(f'./assets/sound/bullet_mode.mp3')
                     pygame.mixer.music.play(-1)
@@ -146,8 +164,10 @@ class TurnManager:
 
                     if current_tool.id == -1 and current_tool.tile_id != self.current_player.id and current_tool.tile_id in (1,2):
                         if self.winning_move(self.game_board.board, current_tool.tile_id, (ROW_COUNT - position[1] - 1, position[0])):  
+                            self.current_player.won = True    
                             self.game_over = True
                     elif self.winning_move(self.game_board.board, self.current_player.id, (ROW_COUNT - position[1] - 1, position[0])):  
+                        self.current_player.won = True
                         self.game_over = True
                     
                     if current_tool.ends_turn:
@@ -157,6 +177,8 @@ class TurnManager:
                         self.tool_used = False
                     else:
                         self.tool_used = True
+
+
 
     # reads a line of given length on the board from a given position (pos) in the direction of a given vector
     def find_line(self, board, pos, vector, length):
@@ -231,8 +253,7 @@ class EventHandler:
                 self.mouse_movement(event)
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE and not self.game.turn_manager.tool_used:
                 self.switch_tool(self.game.turn_manager.tool_index)
-            
-                
+
         if not BULLET_MODE:
             for layer in ['layer_2', 'layer_3', 'layer_4', 'layer_5', 'layer_6']:
                 if self.game.audio[layer].increasing:
@@ -293,8 +314,9 @@ class Render:
         self.draw_board(board, turn, position)
         self.draw_mouse_disc(turn, position, tool)
         if BULLET_MODE:
-            self.draw_timer(1, 30)
-            self.draw_timer(2, 30)
+            self.draw_timer(self.players[0])
+            self.draw_timer(self.players[1])
+        self.winner(self.players)
         self.final_render()
 
     def draw_board(self, board, turn, position):
@@ -328,10 +350,20 @@ class Render:
             else:
                 self.window.blit(self.images[f"{tool.id}_mouse_sprite"], (position[0] - SQUARE_SIZE / 2, SQUARE_SIZE/10))
 
-    def draw_timer(self, player_id, time):
+    def draw_timer(self, player):
         font = pygame.font.SysFont("arialblack", 20)
-        number_text = font.render(f"Player {player_id}: 0:{time}", True, (255, 255, 255))
-        self.window.blit(number_text, (10, 30 * player_id + (self.size[1]-100)))
+        number_text = font.render(f"Player {player.id}: 0:{player.time:02}", True, (255, 255, 255))
+        self.window.blit(number_text, (10, 30 * player.id + (self.size[1]-100)))
+
+    def winner(self, players):
+        for player in players:
+            if player.won:
+                pygame.draw.rect(self.window, (255, 255, 255), (self.size[0]/2 - 150, self.size[1]/2 - 100, 300, 200))
+                font = pygame.font.SysFont("arialblack", 30)
+                winner_message = font.render(f"Congats your when", True, (255, 100, 255))
+                winner_player = font.render(f"player  {player.id}", True, (255, 100, 255))
+                self.window.blit(winner_message, (self.size[0]/2 - 150, self.size[1]/2 - 100, 300, 200))
+                self.window.blit(winner_player, (self.size[0]/2 - 150, self.size[1]/2, 300, 200))
 
     def final_render(self):        
         pygame.display.flip()
