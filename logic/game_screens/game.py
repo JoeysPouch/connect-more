@@ -4,7 +4,6 @@ import random
 sys.path.append(".")
 from logic.components.player import Player
 from logic.components.board import Board
-from logic.components.disc import Disc
 from logic.components.sounds import Sounds
 from logic.components.tool import Tool
 from logic.game_screens.menu import config_variables
@@ -58,16 +57,17 @@ class Game:
 
         # Main Game Audio Setup
         if not BULLET_MODE:
-            self.audio = {'menu': Sounds(True, False, 'menu_music').upload_sound(),
-                        'layer_1': Sounds(True, False, 'layer_1').upload_sound(),
-                        'layer_2': Sounds(True, False, 'layer_2').upload_sound(),
-                        'layer_3': Sounds(True, False, 'layer_3').upload_sound(),
-                        'layer_4': Sounds(True, False, 'layer_4').upload_sound(),
-                        'layer_5': Sounds(True, False, 'layer_5').upload_sound(),
-                        'layer_6': Sounds(True, False, 'layer_6').upload_sound(),                    
-                        'bomb': Sounds(False, True, 'bomb_sound').upload_sound(),
-                        'piece': Sounds(False, True, 'piece_sound').upload_sound(),
-                        }
+            self.audio = {
+                'menu': Sounds(True, False, 'menu_music').upload_sound(),
+                'layer_1': Sounds(True, False, 'layer_1').upload_sound(),
+                'layer_2': Sounds(True, False, 'layer_2').upload_sound(),
+                'layer_3': Sounds(True, False, 'layer_3').upload_sound(),
+                'layer_4': Sounds(True, False, 'layer_4').upload_sound(),
+                'layer_5': Sounds(True, False, 'layer_5').upload_sound(),
+                'layer_6': Sounds(True, False, 'layer_6').upload_sound(),                    
+                'bomb': Sounds(False, True, 'bomb_sound').upload_sound(),
+                'piece': Sounds(False, True, 'piece_sound').upload_sound(),
+            }
 
             self.audio['layer_1'].set_volume(1.0)
             self.audio['layer_1'].start(-1, fade_ms = 3000)
@@ -78,8 +78,8 @@ class Game:
 
         # Initialises other classes
         self.game_board = Board()
-        self.player_1 = Player(1, "Player 1", (255,0,0), [Tool(0, 1.5, False, True, False, True, False)])
-        self.player_2 = Player(2, "Player 2", (255,255,0), [Tool(0, 1.5, False, True, False, True, False)])
+        self.player_1 = Player(1, "Player 1", (255, 0, 0), [Tool(0, 1.5, False, True, False, True, False)])
+        self.player_2 = Player(2, "Player 2", (255, 255, 0), [Tool(0, 1.5, False, True, False, True, False)])
         self.turn_manager = TurnManager(self.game_board, self.position, self.player_1, self.player_2, self.tool_locations)
         self.event_handler = EventHandler(self)
         self.renderer = Render(self.window, self.square_size, self.background_colour, self.player_1, self.player_2, self.tool_locations, size)
@@ -162,13 +162,14 @@ class TurnManager:
                     if current_tool.id == 4:
                         self.current_player.tools = [Tool(-1, held_tile_id, True, False, False, True, False), Tool(0, 3, True, True,  False, True, False)] + self.current_player.tools
 
-                    if current_tool.id == -1 and current_tool.tile_id != self.current_player.id and current_tool.tile_id in (1,2):
-                        if self.winning_move(self.game_board.board, current_tool.tile_id, (ROW_COUNT - position[1] - 1, position[0])):  
-                            self.current_player.won = True    
+                    if current_tool.tile_id in (1, 1.5, 2):
+                        if current_tool.id == -1 and current_tool.tile_id != self.current_player.id:
+                            if self.winning_move(self.game_board.board, current_tool.tile_id, (ROW_COUNT - position[1] - 1, position[0])):  
+                                self.other_player.won = True    
+                                self.game_over = True
+                        elif self.winning_move(self.game_board.board, self.current_player.id, (ROW_COUNT - position[1] - 1, position[0])):  
+                            self.current_player.won = True
                             self.game_over = True
-                    elif self.winning_move(self.game_board.board, self.current_player.id, (ROW_COUNT - position[1] - 1, position[0])):  
-                        self.current_player.won = True
-                        self.game_over = True
                     
                     if current_tool.ends_turn:
                         self.remaining_drops -= 1
@@ -184,11 +185,11 @@ class TurnManager:
     def find_line(self, board, pos, vector, length):
         line = []
         for k in range(length):
-            if pos[0]+k*vector[0] < 0 or pos[1]+k*vector[1] < 0:
+            if pos[0] + k * vector[0] < 0 or pos[1] + k * vector[1] < 0:
                 return [False]
-            if pos[0]+k*vector[0] >= ROW_COUNT or pos[1]+k*vector[1] >= COLUMN_COUNT:
+            if pos[0] + k * vector[0] >= ROW_COUNT or pos[1] + k * vector[1] >= COLUMN_COUNT:
                 return [False]
-            next_letter = int(board[pos[0]+k*vector[0]][pos[1]+k*vector[1]])
+            next_letter = int(board[pos[0] + k * vector[0]][pos[1] + k * vector[1]])
             line.append(next_letter)
         return line
     
@@ -197,35 +198,32 @@ class TurnManager:
     def start_points(self, row, column, vector, length):
         points = []
         for i in range(length):
-            points.append((row + i*vector[0], column + i*vector[1]))
+            points.append((row + i * vector[0], column + i * vector[1]))
         return points
 
         
     # Checks if the last move created a win
     def winning_move(self, board, turn, last_pos):
-
-        connect_length = NUMBER_TO_WIN  # to be replaced with NUMBER_TO_WIN
-
         # checks top left to bottom right diagoanals
-        for point in self.start_points(last_pos[0], last_pos[1], (-1, -1), connect_length):
-            line_to_check = self.find_line(board, point, (1, 1), connect_length)
+        for point in self.start_points(last_pos[0], last_pos[1], (-1, -1), NUMBER_TO_WIN):
+            line_to_check = self.find_line(board, point, (1, 1), NUMBER_TO_WIN)
             if set(line_to_check) == {turn}:
                 return True
         
         # checks horizontal lines
-        for column in range(last_pos[1] - connect_length + 1, last_pos[1] + 1):
-            line_to_check = self.find_line(board, (last_pos[0], column), (0, 1), connect_length)
+        for column in range(last_pos[1] - NUMBER_TO_WIN + 1, last_pos[1] + 1):
+            line_to_check = self.find_line(board, (last_pos[0], column), (0, 1), NUMBER_TO_WIN)
             if set(line_to_check) == {turn}:
                 return True
         
         # checks bottom left to top right
-        for point in self.start_points(last_pos[0], last_pos[1], (1, -1), connect_length):
-            line_to_check = self.find_line(board, point, (-1, 1), connect_length)
+        for point in self.start_points(last_pos[0], last_pos[1], (1, -1), NUMBER_TO_WIN):
+            line_to_check = self.find_line(board, point, (-1, 1), NUMBER_TO_WIN)
             if set(line_to_check) == {turn}:
                 return True
 
         # checks vertical line
-        line_to_check = self.find_line(board, last_pos, (1, 0), connect_length)
+        line_to_check = self.find_line(board, last_pos, (1, 0), NUMBER_TO_WIN)
         if set(line_to_check) == {turn}:
                 return True
 
@@ -248,7 +246,7 @@ class EventHandler:
             if event.type == pygame.QUIT:
                 exit()
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                self.clicks(event)
+                self.clicks()
             if event.type == pygame.MOUSEMOTION:
                 self.mouse_movement(event)
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE and not self.game.turn_manager.tool_used:
@@ -259,10 +257,10 @@ class EventHandler:
                 if self.game.audio[layer].increasing:
                     self.game.audio[layer].increase_volume(0.0005)
 
-    def clicks(self, event):
+    def clicks(self):
         if not self.game.turn_manager.game_over:
             self.game.turn_manager.attempt = True
-            self.game.turn_manager.selection = (int(self.game.position[0]/self.game.square_size) - 1, int(self.game.position[1]/self.game.square_size) - 1)
+            self.game.turn_manager.selection = (int(self.game.position[0] / self.game.square_size) - 1, int(self.game.position[1] / self.game.square_size) - 1)
             self.game.turn_manager.player_turn()
             if not BULLET_MODE:
                 self.game.audio['piece'].start()
@@ -279,9 +277,11 @@ class EventHandler:
 
     def music(self):
         thresholds = {
-                    4: ['layer_2', 'layer_3'],
-                      10: ['layer_4', 'layer_5'],
-                      20: ['layer_6']}
+            4: ['layer_2', 'layer_3'],
+            10: ['layer_4', 'layer_5'],
+            20: ['layer_6']
+        }
+
         for threshold, layers in thresholds.items():
             if self.game.turn_manager.number_of_turns >= threshold:
                 for layer in layers:
@@ -311,7 +311,7 @@ class Render:
         self.size = size
 
     def render(self, board, turn, position, tool):
-        self.draw_board(board, turn, position)
+        self.draw_board(board)
         self.draw_mouse_disc(turn, position, tool)
         if BULLET_MODE:
             self.draw_timer(self.players[0])
@@ -319,36 +319,30 @@ class Render:
         self.winner(self.players)
         self.final_render()
 
-    def draw_board(self, board, turn, position):
+    def draw_board(self, board):
         self.window.fill(self.background_colour)
         pygame.draw.rect(self.window, (0, 0, 255), (self.square_size, self.square_size, self.square_size * COLUMN_COUNT, self.square_size * ROW_COUNT))
         for c in range(COLUMN_COUNT):
             for r in range(ROW_COUNT):
-                # self.placed_disc = Disc(r, c, self.players, board[r][c], self.background_colour)
-                # self.placed_disc.get_colour()
-                # pygame.draw.circle(self.window, self.placed_disc.colour, self.placed_disc.position, self.placed_disc.radius)
-                # if (c,ROW_COUNT - r - 1) in self.tool_locations and VISIBLE_TOOLS:
-                #     pygame.draw.circle(self.window, "white", self.placed_disc.position, self.placed_disc.radius / 3)
-
                 disc_colour = self.get_colour(board[r][c])
-                disc_pos = SQUARE_SIZE * (c+1) + int(SQUARE_SIZE/2), SQUARE_SIZE * (r+1) + int(SQUARE_SIZE/2)
-                pygame.draw.circle(self.window, disc_colour, disc_pos, int(SQUARE_SIZE/2.5))
-                if (c,ROW_COUNT - r - 1) in self.tool_locations and VISIBLE_TOOLS:
-                    pygame.draw.circle(self.window, "white", disc_pos, int(SQUARE_SIZE/7.5))
+                disc_pos = SQUARE_SIZE * (c + 1) + int(SQUARE_SIZE/2), SQUARE_SIZE * (r + 1) + int(SQUARE_SIZE/2)
+                pygame.draw.circle(self.window, disc_colour, disc_pos, int(SQUARE_SIZE / 2.5))
+                if (c, ROW_COUNT - r - 1) in self.tool_locations and VISIBLE_TOOLS:
+                    pygame.draw.circle(self.window, "white", disc_pos, int(SQUARE_SIZE / 7.5))
 
     def draw_mouse_disc(self, turn, position, tool):      
         if tool.mouse_sprite == False:   
             if tool.single_tile:   
                 pygame.draw.circle(self.window, turn.colour if tool.tile_id == 1.5 else self.get_colour(tool.tile_id), position, self.disc_size)
-                pygame.draw.circle(self.window, (0,0,0),  position, self.disc_size, max(int(self.disc_size/20), 1))
+                pygame.draw.circle(self.window, (0,0,0),  position, self.disc_size, max(int(self.disc_size / 20), 1))
             else:
-                pygame.draw.circle(self.window, turn.colour if tool.tile_id == 1.5 else self.get_colour(tool.tile_id), (position[0], SQUARE_SIZE/2), self.disc_size)
-                pygame.draw.circle(self.window, (0,0,0),  (position[0], SQUARE_SIZE/2), self.disc_size, max(int(self.disc_size/20), 1))
+                pygame.draw.circle(self.window, turn.colour if tool.tile_id == 1.5 else self.get_colour(tool.tile_id), (position[0], SQUARE_SIZE / 2), self.disc_size)
+                pygame.draw.circle(self.window, (0,0,0),  (position[0], SQUARE_SIZE / 2), self.disc_size, max(int(self.disc_size / 20), 1))
         else:
             if tool.single_tile: 
                 self.window.blit(self.images[f"{tool.id}_mouse_sprite"], (position[0] - SQUARE_SIZE / 2, position[1] - SQUARE_SIZE / 2))
             else:
-                self.window.blit(self.images[f"{tool.id}_mouse_sprite"], (position[0] - SQUARE_SIZE / 2, SQUARE_SIZE/10))
+                self.window.blit(self.images[f"{tool.id}_mouse_sprite"], (position[0] - SQUARE_SIZE / 2, SQUARE_SIZE / 10))
 
     def draw_timer(self, player):
         font = pygame.font.SysFont("arialblack", 20)
@@ -358,12 +352,12 @@ class Render:
     def winner(self, players):
         for player in players:
             if player.won:
-                pygame.draw.rect(self.window, (255, 255, 255), (self.size[0]/2 - 150, self.size[1]/2 - 100, 300, 200))
+                pygame.draw.rect(self.window, (255, 255, 255), (self.size[0]/2 - 150, self.size[1] / 2 - 100, 300, 200))
                 font = pygame.font.SysFont("arialblack", 30)
                 winner_message = font.render(f"Congats your when", True, (255, 100, 255))
                 winner_player = font.render(f"player  {player.id}", True, (255, 100, 255))
-                self.window.blit(winner_message, (self.size[0]/2 - 150, self.size[1]/2 - 100, 300, 200))
-                self.window.blit(winner_player, (self.size[0]/2 - 150, self.size[1]/2, 300, 200))
+                self.window.blit(winner_message, (self.size[0] / 2 - 150, self.size[1] / 2 - 100, 300, 200))
+                self.window.blit(winner_player, (self.size[0] / 2 - 150, self.size[1] / 2, 300, 200))
 
     def final_render(self):        
         pygame.display.flip()
