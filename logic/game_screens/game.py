@@ -160,7 +160,7 @@ class TurnManager:
                     self.tool_index = 0
 
                     if current_tool.id == 4:
-                        self.current_player.tools = [Tool(-1, held_tile_id, True, True, False, True, False)] + self.current_player.tools
+                        self.current_player.tools = [Tool(-1, held_tile_id, True, False, False, True, False), Tool(0, 3, True, True,  False, True, False)] + self.current_player.tools
 
                     if current_tool.id == -1 and current_tool.tile_id != self.current_player.id and current_tool.tile_id in (1,2):
                         if self.winning_move(self.game_board.board, current_tool.tile_id, (ROW_COUNT - position[1] - 1, position[0])):  
