@@ -11,6 +11,6 @@ class Tool:
     def check_surrounding_tiles(self, pos, board):
         for row in range(max(0, pos[1] - 1), min(len(board), pos[1] + 2)):
             for col in range(max(0, pos[0] - 1), min(len(board[0]), pos[0] + 2)): # this is assuming a rectangular board
-                if board[row][col] not in (0,4):
+                if board[row][col] not in (0, 4):
                     return False
         return board[pos[1]][pos[0]] == 0
