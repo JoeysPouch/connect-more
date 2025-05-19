@@ -6,6 +6,7 @@ from logic.components.player import Player
 from logic.components.board import Board
 from logic.components.sounds import Sounds
 from logic.components.tool import Tool
+from logic.components.animation import Animation
 from logic.game_screens.menu import config_variables
 
 ROW_COUNT = config_variables["row_count"]
@@ -258,7 +259,7 @@ class EventHandler:
                     self.game.audio[layer].increase_volume(0.0005)
 
     def clicks(self):
-        if not self.game.turn_manager.game_over:
+        if not self.game.turn_manager.game_over and not self.game.renderer.paused:
             self.game.turn_manager.attempt = True
             self.game.turn_manager.selection = (int(self.game.position[0] / self.game.square_size) - 1, int(self.game.position[1] / self.game.square_size) - 1)
             self.game.turn_manager.player_turn()
@@ -309,10 +310,14 @@ class Render:
             "4_mouse_sprite" : pygame.transform.scale(pygame.image.load("./assets/images/magnet.png"), (SQUARE_SIZE * 0.8, SQUARE_SIZE * 0.8))
         }
         self.size = size
+        self.animations = []
+        self.paused = False
 
     def render(self, board, turn, position, tool):
         self.draw_board(board)
-        self.draw_mouse_disc(turn, position, tool)
+        self.draw_animations()
+        if not self.paused:
+            self.draw_mouse_disc(turn, position, tool)
         if BULLET_MODE:
             self.draw_timer(self.players[0])
             self.draw_timer(self.players[1])
@@ -347,7 +352,18 @@ class Render:
     def draw_timer(self, player):
         font = pygame.font.SysFont("arialblack", 20)
         number_text = font.render(f"Player {player.id}: 0:{player.time:02}", True, (255, 255, 255))
-        self.window.blit(number_text, (10, 30 * player.id + (self.size[1]-100)))
+        self.window.blit(number_text, (10, 30 * player.id + (self.size[1] - 100)))
+
+    def draw_animations(self):
+        for animation in self.animations:
+            sprite, pos = animation.get_frame_and_pos()
+            if animation.complete:
+                del animation
+                self.paused = False
+            else:
+                self.window.blit(sprite, ((pos[0] + 1) * SQUARE_SIZE,  (pos[1] + 1) * SQUARE_SIZE))
+                if animation.pause_game:
+                    self.paused = True
 
     def winner(self, players):
         for player in players:
