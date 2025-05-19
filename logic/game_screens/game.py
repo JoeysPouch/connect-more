@@ -1,6 +1,7 @@
 import pygame
 import sys
 import random
+from copy import deepcopy
 sys.path.append(".")
 from logic.components.player import Player
 from logic.components.board import Board
@@ -83,7 +84,7 @@ class Game:
         self.player_2 = Player(2, "Player 2", (255, 255, 0), [Tool(0, 1.5, False, True, False, True, False)])
         self.turn_manager = TurnManager(self.game_board, self.position, self.player_1, self.player_2, self.tool_locations)
         self.event_handler = EventHandler(self)
-        self.renderer = Render(self.window, self.square_size, self.background_colour, self.player_1, self.player_2, self.tool_locations, size)
+        self.renderer = Render(self.window, self.square_size, self.background_colour, self.player_1, self.player_2, self.tool_locations, size, self.game_board.board)
 
         self.game_loop()
 
@@ -299,7 +300,7 @@ class EventHandler:
 
 # For rendering and graphical type things
 class Render:
-    def __init__(self, window, square_size, background_colour, player_1, player_2, tool_locations, size):
+    def __init__(self, window, square_size, background_colour, player_1, player_2, tool_locations, size, board):
         self.window = window
         self.square_size = square_size
         self.disc_size = int(self.square_size / 2.5)
@@ -311,6 +312,7 @@ class Render:
         }
         self.size = size
         self.animations = []
+        self.board = board
         self.paused = False
 
     def render(self, board, turn, position, tool):
@@ -326,10 +328,12 @@ class Render:
 
     def draw_board(self, board):
         self.window.fill(self.background_colour)
+        if not self.paused:
+            self.board = deepcopy(board)
         pygame.draw.rect(self.window, (0, 0, 255), (self.square_size, self.square_size, self.square_size * COLUMN_COUNT, self.square_size * ROW_COUNT))
         for c in range(COLUMN_COUNT):
             for r in range(ROW_COUNT):
-                disc_colour = self.get_colour(board[r][c])
+                disc_colour = self.get_colour(self.board[r][c])
                 disc_pos = SQUARE_SIZE * (c + 1) + int(SQUARE_SIZE/2), SQUARE_SIZE * (r + 1) + int(SQUARE_SIZE/2)
                 pygame.draw.circle(self.window, disc_colour, disc_pos, int(SQUARE_SIZE / 2.5))
                 if (c, ROW_COUNT - r - 1) in self.tool_locations and VISIBLE_TOOLS:
