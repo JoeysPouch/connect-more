@@ -157,10 +157,19 @@ class TurnManager:
                     # print(self.game_board.board)
 
                     if current_tool.id in (-1, 0):
+                        d = -1
+                        v = 10
+                        fall_positions = []
+
+                        while d < (ROW_COUNT - position[1] - 1):
+                            fall_positions.append((position[0], d))
+                            d = d + v / 60 + 50 / 7200
+                            v = v + 50 / 60
+                        
                         animations.append(
                             Animation(
-                                [pygame.image.load("./assets/images/magnet.png")],
-                                [(1,0),(1,1),(1,2),(1,3),(1,4),(1,5),(1,0),(1,1),(1,2),(1,3),(1,4),(1,5),(1,0),(1,1),(1,2),(1,3),(1,4),(1,5)],
+                                [pygame.transform.scale(pygame.image.load("./assets/images/magnet.png"), (SQUARE_SIZE, SQUARE_SIZE))],
+                                fall_positions,
                                 False,
                                 True
                             )
