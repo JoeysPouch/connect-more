@@ -29,11 +29,6 @@ font = pygame.font.SysFont("arialblack", 40)
 TEXT_COL = (255, 255, 255)
 BUTTON_COL = (210, 105, 30)
 
-def write_to_config(config_variables):
-    with open("logic/config.py", "w") as config_file:
-        config_file.write("config_variables = ")
-        config_file.write(repr(config_variables))
-
 
 class Button:
     def __init__(self, name, location, status, appearance, tickable):
@@ -131,7 +126,6 @@ class Button:
         if self.name == "Start":
             config_variables["square_size"] = min(500/config_variables["row_count"], 1000/config_variables["column_count"])
             config_variables["start_game"] = True
-            write_to_config(config_variables)
             print(config_variables)
 
 
