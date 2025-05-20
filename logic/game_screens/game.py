@@ -125,7 +125,7 @@ class TurnManager:
                     self.current_player.time -= 1
                     self.current_player.time = max(0, self.current_player.time)
 
-    def player_turn(self):
+    def player_turn(self, animations):
         if not self.game_over:
             if self.attempt:
                 self.first_move_made = True
@@ -155,6 +155,16 @@ class TurnManager:
                     self.game_board.flip_board()
 
                     # print(self.game_board.board)
+
+                    if current_tool.id in (-1, 0):
+                        animations.append(
+                            Animation(
+                                [pygame.image.load("./assets/images/magnet.png")],
+                                [(1,0),(1,1),(1,2),(1,3),(1,4),(1,5),(1,0),(1,1),(1,2),(1,3),(1,4),(1,5),(1,0),(1,1),(1,2),(1,3),(1,4),(1,5)],
+                                False,
+                                True
+                            )
+                        )
 
                     if current_tool.single_use:
                         del self.current_player.tools[self.tool_index] 
@@ -263,7 +273,7 @@ class EventHandler:
         if not self.game.turn_manager.game_over and not self.game.renderer.paused:
             self.game.turn_manager.attempt = True
             self.game.turn_manager.selection = (int(self.game.position[0] / self.game.square_size) - 1, int(self.game.position[1] / self.game.square_size) - 1)
-            self.game.turn_manager.player_turn()
+            self.game.turn_manager.player_turn(self.game.renderer.animations)
             if not BULLET_MODE:
                 self.game.audio['piece'].start()
                 self.music()
@@ -316,8 +326,10 @@ class Render:
         self.paused = False
 
     def render(self, board, turn, position, tool):
+        animation_frames = self.get_animation_frames()
         self.draw_board(board)
-        self.draw_animations()
+        for frame in animation_frames:
+            self.window.blit(frame[0], frame[1])
         if not self.paused:
             self.draw_mouse_disc(turn, position, tool)
         if BULLET_MODE:
@@ -358,16 +370,18 @@ class Render:
         number_text = font.render(f"Player {player.id}: 0:{player.time:02}", True, (255, 255, 255))
         self.window.blit(number_text, (10, 30 * player.id + (self.size[1] - 100)))
 
-    def draw_animations(self):
+    def get_animation_frames(self):
+        animation_frames = []
         for animation in self.animations:
             sprite, pos = animation.get_frame_and_pos()
-            if animation.complete:
+            if animation.complete and animation.pause_game:
                 del animation
                 self.paused = False
             else:
-                self.window.blit(sprite, ((pos[0] + 1) * SQUARE_SIZE,  (pos[1] + 1) * SQUARE_SIZE))
+                animation_frames.append((sprite, ((pos[0] + 1) * SQUARE_SIZE,  (pos[1] + 1) * SQUARE_SIZE)))
                 if animation.pause_game:
                     self.paused = True
+        return animation_frames
 
     def winner(self, players):
         for player in players:
