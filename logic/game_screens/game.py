@@ -114,7 +114,7 @@ class TurnManager:
         self.remaining_drops = 1
         self.tool_locations = tool_locations
         self.first_move_made = False
-        self.sets = {1: 0, 2: 0}
+        self.sets = {1: [], 2: []}
 
     def timers(self):
         if BULLET_MODE:
@@ -205,30 +205,30 @@ class TurnManager:
     # Checks if the last move created a win
     def winning_move(self, board, turn, last_pos):
 
-        # checks top left to bottom right diagoanals
+        # checks top left to bottom right diagonals
         for point in self.start_points(last_pos[0], last_pos[1], (-1, -1), NUMBER_TO_WIN):
             line_to_check = self.find_line(board, point, (1, 1), NUMBER_TO_WIN)
             if set(line_to_check) == {turn}:
-                self.sets[turn] += 1
+                self.sets[turn].append(last_pos)
         
         # checks horizontal lines
         for column in range(last_pos[1] - NUMBER_TO_WIN + 1, last_pos[1] + 1):
             line_to_check = self.find_line(board, (last_pos[0], column), (0, 1), NUMBER_TO_WIN)
             if set(line_to_check) == {turn}:
-                self.sets[turn] += 1
+                self.sets[turn].append(last_pos)
         
         # checks bottom left to top right
         for point in self.start_points(last_pos[0], last_pos[1], (1, -1), NUMBER_TO_WIN):
             line_to_check = self.find_line(board, point, (-1, 1), NUMBER_TO_WIN)
             if set(line_to_check) == {turn}:
-                self.sets[turn] += 1
+                self.sets[turn].append(last_pos)
 
         # checks vertical line
         line_to_check = self.find_line(board, last_pos, (1, 0), NUMBER_TO_WIN)
         if set(line_to_check) == {turn}:
-                self.sets[turn] += 1
+                self.sets[turn].append(last_pos)
         
-        return self.sets[turn] == SETS_TO_WIN
+        return len(self.sets[turn]) == SETS_TO_WIN
 
 
     def switch_turn(self):  
