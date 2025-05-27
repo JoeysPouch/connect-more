@@ -1,11 +1,13 @@
 import pygame
 import sys
 import random
+from copy import deepcopy
 sys.path.append(".")
 from logic.components.player import Player
 from logic.components.board import Board
 from logic.components.sounds import Sounds
 from logic.components.tool import Tool
+from logic.components.animation import Animation
 from logic.game_screens.menu import config_variables
 
 ROW_COUNT = config_variables["row_count"]
@@ -82,7 +84,7 @@ class Game:
         self.player_2 = Player(2, "Player 2", (255, 255, 0), [Tool(0, 1.5, False, True, False, True, False)])
         self.turn_manager = TurnManager(self.game_board, self.position, self.player_1, self.player_2, self.tool_locations)
         self.event_handler = EventHandler(self)
-        self.renderer = Render(self.window, self.square_size, self.background_colour, self.player_1, self.player_2, self.tool_locations, size)
+        self.renderer = Render(self.window, self.square_size, self.background_colour, self.player_1, self.player_2, self.tool_locations, size, self.game_board.board)
 
         self.game_loop()
 
@@ -123,7 +125,7 @@ class TurnManager:
                     self.current_player.time -= 1
                     self.current_player.time = max(0, self.current_player.time)
 
-    def player_turn(self):
+    def player_turn(self, animations):
         if not self.game_over:
             if self.attempt:
                 self.first_move_made = True
@@ -153,6 +155,25 @@ class TurnManager:
                     self.game_board.flip_board()
 
                     # print(self.game_board.board)
+
+                    if current_tool.id in (-1, 0):
+                        d = -1
+                        v = 10
+                        fall_positions = []
+
+                        while d < (ROW_COUNT - position[1] - 1):
+                            fall_positions.append((position[0], d))
+                            d = d + v / 60 + 50 / 7200
+                            v = v + 50 / 60
+                        
+                        animations.append(
+                            Animation(
+                                [pygame.transform.scale(pygame.image.load("./assets/images/magnet.png"), (SQUARE_SIZE, SQUARE_SIZE))],
+                                fall_positions,
+                                False,
+                                True
+                            )
+                        )
 
                     if current_tool.single_use:
                         del self.current_player.tools[self.tool_index] 
@@ -258,10 +279,10 @@ class EventHandler:
                     self.game.audio[layer].increase_volume(0.0005)
 
     def clicks(self):
-        if not self.game.turn_manager.game_over:
+        if not self.game.turn_manager.game_over and not self.game.renderer.paused:
             self.game.turn_manager.attempt = True
             self.game.turn_manager.selection = (int(self.game.position[0] / self.game.square_size) - 1, int(self.game.position[1] / self.game.square_size) - 1)
-            self.game.turn_manager.player_turn()
+            self.game.turn_manager.player_turn(self.game.renderer.animations)
             if not BULLET_MODE:
                 self.game.audio['piece'].start()
                 self.music()
@@ -298,7 +319,7 @@ class EventHandler:
 
 # For rendering and graphical type things
 class Render:
-    def __init__(self, window, square_size, background_colour, player_1, player_2, tool_locations, size):
+    def __init__(self, window, square_size, background_colour, player_1, player_2, tool_locations, size, board):
         self.window = window
         self.square_size = square_size
         self.disc_size = int(self.square_size / 2.5)
@@ -309,10 +330,17 @@ class Render:
             "4_mouse_sprite" : pygame.transform.scale(pygame.image.load("./assets/images/magnet.png"), (SQUARE_SIZE * 0.8, SQUARE_SIZE * 0.8))
         }
         self.size = size
+        self.animations = []
+        self.board = board
+        self.paused = False
 
     def render(self, board, turn, position, tool):
+        animation_frames = self.get_animation_frames()
         self.draw_board(board)
-        self.draw_mouse_disc(turn, position, tool)
+        for frame in animation_frames:
+            self.window.blit(frame[0], frame[1])
+        if not self.paused:
+            self.draw_mouse_disc(turn, position, tool)
         if BULLET_MODE:
             self.draw_timer(self.players[0])
             self.draw_timer(self.players[1])
@@ -321,10 +349,12 @@ class Render:
 
     def draw_board(self, board):
         self.window.fill(self.background_colour)
+        if not self.paused:
+            self.board = deepcopy(board)
         pygame.draw.rect(self.window, (0, 0, 255), (self.square_size, self.square_size, self.square_size * COLUMN_COUNT, self.square_size * ROW_COUNT))
         for c in range(COLUMN_COUNT):
             for r in range(ROW_COUNT):
-                disc_colour = self.get_colour(board[r][c])
+                disc_colour = self.get_colour(self.board[r][c])
                 disc_pos = SQUARE_SIZE * (c + 1) + int(SQUARE_SIZE/2), SQUARE_SIZE * (r + 1) + int(SQUARE_SIZE/2)
                 pygame.draw.circle(self.window, disc_colour, disc_pos, int(SQUARE_SIZE / 2.5))
                 if (c, ROW_COUNT - r - 1) in self.tool_locations and VISIBLE_TOOLS:
@@ -347,7 +377,20 @@ class Render:
     def draw_timer(self, player):
         font = pygame.font.SysFont("arialblack", 20)
         number_text = font.render(f"Player {player.id}: 0:{player.time:02}", True, (255, 255, 255))
-        self.window.blit(number_text, (10, 30 * player.id + (self.size[1]-100)))
+        self.window.blit(number_text, (10, 30 * player.id + (self.size[1] - 100)))
+
+    def get_animation_frames(self):
+        animation_frames = []
+        for animation in self.animations:
+            sprite, pos = animation.get_frame_and_pos()
+            if animation.complete and animation.pause_game:
+                del animation
+                self.paused = False
+            else:
+                animation_frames.append((sprite, ((pos[0] + 1) * SQUARE_SIZE,  (pos[1] + 1) * SQUARE_SIZE)))
+                if animation.pause_game:
+                    self.paused = True
+        return animation_frames
 
     def winner(self, players):
         for player in players:
