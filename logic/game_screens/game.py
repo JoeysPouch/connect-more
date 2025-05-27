@@ -13,7 +13,7 @@ from logic.game_screens.menu import config_variables
 ROW_COUNT = config_variables["row_count"]
 COLUMN_COUNT = config_variables["column_count"]
 SQUARE_SIZE = config_variables["square_size"]
-ELIGIBLE_TOOLS = config_variables["eligible_tools"] + [5]
+ELIGIBLE_TOOLS = config_variables["eligible_tools"]
 NUMBER_TO_WIN = config_variables["number_to_win"]
 SETS_TO_WIN = config_variables["sets_to_win"]
 BULLET_MODE = config_variables["bullet_mode"]

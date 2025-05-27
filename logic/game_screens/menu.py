@@ -93,6 +93,11 @@ class Button:
                 config_variables["eligible_tools"].append(4)
             else:
                 config_variables["eligible_tools"].remove(4)
+        if self.name == "Freeze":
+            if self.status:
+                config_variables["eligible_tools"].append(5)
+            else:
+                config_variables["eligible_tools"].remove(5)
         if self.name == "1 Set":
             config_variables["sets_to_win"] = 1
             set2_button.status = False
@@ -143,6 +148,7 @@ connect6_button = Button("Connect 6", [210, 250, 60, 60], False, "6", True)
 bomb_button = Button("Bomb", [50, 400, 60, 60], False, f"./assets/images/bomb.png", True)
 floating_tile_button = Button("Floating Tile", [130, 400, 60, 60], False, f"./assets/images/bomb.png", True)
 magnet_button = Button("Magnet", [210, 400, 60, 60], False, f"./assets/images/bomb.png", True)
+freeze_button = Button("Freeze", [290, 330, 60, 60], False, f"./assets/images/freeze.png", True)
 visible_tools = Button("Items Visible", [290, 400, 60, 60], True, "", True)
 
 set1_button = Button("1 Set", [450, 250, 60, 60], True, "1", True)
@@ -169,6 +175,7 @@ buttons = [
     bomb_button,
     floating_tile_button,
     magnet_button,
+    freeze_button,
     rows_label,
     set1_button,
     set2_button,
