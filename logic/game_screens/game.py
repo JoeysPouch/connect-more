@@ -13,7 +13,7 @@ from logic.game_screens.menu import config_variables
 ROW_COUNT = config_variables["row_count"]
 COLUMN_COUNT = config_variables["column_count"]
 SQUARE_SIZE = config_variables["square_size"]
-ELIGIBLE_TOOLS = config_variables["eligible_tools"]
+ELIGIBLE_TOOLS = config_variables["eligible_tools"] + [5]
 NUMBER_TO_WIN = config_variables["number_to_win"]
 SETS_TO_WIN = config_variables["sets_to_win"]
 BULLET_MODE = config_variables["bullet_mode"]
@@ -56,6 +56,8 @@ class Game:
                             self.tool_locations[(col, row)] = Tool(3, 1.5, True, True, True, True, False)
                         elif tool_to_add == 4:
                             self.tool_locations[(col, row)] = Tool(4, 0, True, False, False, False, True)
+                        elif tool_to_add == 5:
+                            self.tool_locations[(col, row)] = Tool(5, -1, True, False, False, False, True)
 
         # Main Game Audio Setup
         if not BULLET_MODE:
@@ -98,7 +100,7 @@ class Game:
                 if self.turn_manager.current_player.time == 0:
                     self.turn_manager.other_player.won = True
                     self.turn_manager.game_over = True
-            self.renderer.render(self.game_board.board, self.turn_manager.current_player, self.position, self.turn_manager.current_player.tools[self.turn_manager.tool_index])
+            self.renderer.render(self.game_board.board, self.turn_manager.current_player, self.position, self.turn_manager.current_player.tools[self.turn_manager.tool_index], self.game_board.frozen_columns)
 
 class TurnManager:
     def __init__(self, board, position, player_1, player_2, tool_locations):
@@ -174,6 +176,18 @@ class TurnManager:
                                 True
                             )
                         )
+                    elif current_tool.id == 5:
+                        self.game_board.frozen_columns[self.selection[0]] = 3
+                        for i in range(ROW_COUNT):
+                            if self.game_board.board[i][self.selection[0]] not in (0, 4):
+                                animations.append(
+                                    Animation(
+                                        [pygame.transform.scale(pygame.image.load("./assets/images/freeze.png"), (SQUARE_SIZE, SQUARE_SIZE))],
+                                        [(self.selection[0], i)] * 5,
+                                        False,
+                                        True
+                                    )
+                                )
 
                     if current_tool.single_use:
                         del self.current_player.tools[self.tool_index] 
@@ -252,6 +266,12 @@ class TurnManager:
     def switch_turn(self):  
         self.current_player = self.players[0] if self.current_player == self.players[1] else self.players[1]
         self.number_of_turns += 1
+
+        for x in list(self.game_board.frozen_columns.keys()):
+            self.game_board.frozen_columns[x] -= 1
+            if self.game_board.frozen_columns[x] <= 0:
+                del self.game_board.frozen_columns[x]
+
         if NUMBER_TO_WIN > 4:
             self.remaining_drops = 2
         else:
@@ -327,16 +347,17 @@ class Render:
         self.players = [player_1, player_2]
         self.tool_locations = tool_locations
         self.images = {
-            "4_mouse_sprite" : pygame.transform.scale(pygame.image.load("./assets/images/magnet.png"), (SQUARE_SIZE * 0.8, SQUARE_SIZE * 0.8))
+            "4_mouse_sprite" : pygame.transform.scale(pygame.image.load("./assets/images/magnet.png"), (SQUARE_SIZE * 0.8, SQUARE_SIZE * 0.8)),
+            "5_mouse_sprite" : pygame.transform.scale(pygame.image.load("./assets/images/freeze.png"), (SQUARE_SIZE * 0.8, SQUARE_SIZE * 0.8))
         }
         self.size = size
         self.animations = []
         self.board = board
         self.paused = False
 
-    def render(self, board, turn, position, tool):
+    def render(self, board, turn, position, tool, frozen_columns):
         animation_frames = self.get_animation_frames()
-        self.draw_board(board)
+        self.draw_board(board, frozen_columns)
         for frame in animation_frames:
             self.window.blit(frame[0], frame[1])
         if not self.paused:
@@ -347,7 +368,7 @@ class Render:
         self.winner(self.players)
         self.final_render()
 
-    def draw_board(self, board):
+    def draw_board(self, board, frozen_columns):
         self.window.fill(self.background_colour)
         if not self.paused:
             self.board = deepcopy(board)
@@ -355,6 +376,8 @@ class Render:
         for c in range(COLUMN_COUNT):
             for r in range(ROW_COUNT):
                 disc_colour = self.get_colour(self.board[r][c])
+                if c in frozen_columns:
+                    disc_colour = (disc_colour[0], disc_colour[1], min(255, disc_colour[2] + 150))
                 disc_pos = SQUARE_SIZE * (c + 1) + int(SQUARE_SIZE/2), SQUARE_SIZE * (r + 1) + int(SQUARE_SIZE/2)
                 pygame.draw.circle(self.window, disc_colour, disc_pos, int(SQUARE_SIZE / 2.5))
                 if (c, ROW_COUNT - r - 1) in self.tool_locations and VISIBLE_TOOLS:
@@ -395,7 +418,7 @@ class Render:
     def winner(self, players):
         for player in players:
             if player.won:
-                pygame.draw.rect(self.window, (255, 255, 255), (self.size[0]/2 - 150, self.size[1] / 2 - 100, 300, 200))
+                pygame.draw.rect(self.window, (255, 255, 255), (self.size[0] / 2 - 150, self.size[1] / 2 - 100, 300, 200))
                 font = pygame.font.SysFont("arialblack", 30)
                 winner_message = font.render(f"Congats your when", True, (255, 100, 255))
                 winner_player = font.render(f"player  {player.id}", True, (255, 100, 255))

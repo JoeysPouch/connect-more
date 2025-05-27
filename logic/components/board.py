@@ -9,12 +9,17 @@ COLUMN_COUNT = config_variables["column_count"]
 class Board:
     def __init__(self):
         self.board = np.zeros((ROW_COUNT, COLUMN_COUNT))
+        self.frozen_columns = {}
 
     def position_change(self, pos, turn):
         self.board[pos[1]][pos[0]] = turn
 
     # Checks whether click location is valid for current tool
     def is_valid_location(self, pos, tool): 
+        if pos[0] in self.frozen_columns:
+            return False
+        if tool.id == 5:
+            return True
         if tool.single_tile:
             if tool.id == 3:
                 return tool.check_surrounding_tiles(pos, self.board)
