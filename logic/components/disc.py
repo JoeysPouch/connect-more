@@ -1,6 +1,6 @@
 import sys
 sys.path.append(".")
-from logic.config import config_variables
+from logic.game_screens.menu import config_variables
 
 SQUARE_SIZE = config_variables["square_size"]
 
