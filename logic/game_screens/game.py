@@ -153,7 +153,10 @@ class TurnManager:
 
                     self.game_board.flip_board()
 
-                    # print(self.game_board.board)
+                    print(self.game_board.board)
+
+                    if current_tool.id == 2:
+                        self.check_for_break(self.game_board.board)
 
                     if current_tool.single_use:
                         del self.current_player.tools[self.tool_index] 
@@ -164,6 +167,7 @@ class TurnManager:
                         self.current_player.tools = [Tool(-1, held_tile_id, True, True, False, True, False)] + self.current_player.tools
 
                     if current_tool.id == -1 and current_tool.tile_id != self.current_player.id and current_tool.tile_id in (1,2):
+                        self.check_for_break(self.game_board.board)
                         if self.winning_move(self.game_board.board, current_tool.tile_id, (ROW_COUNT - position[1] - 1, position[0])):  
                             self.current_player.won = True    
                             self.game_over = True
@@ -189,8 +193,8 @@ class TurnManager:
                 return [False]
             if pos[0]+k*vector[0] >= ROW_COUNT or pos[1]+k*vector[1] >= COLUMN_COUNT:
                 return [False]
-            next_letter = int(board[pos[0]+k*vector[0]][pos[1]+k*vector[1]])
-            line.append(next_letter)
+            next_tile = int(board[pos[0]+k*vector[0]][pos[1]+k*vector[1]])
+            line.append(next_tile)
         return line
     
     # generates list of positions to put in find_line to read all lines of given length in direction of given vector that contain point (row, column)
@@ -209,26 +213,42 @@ class TurnManager:
         for point in self.start_points(last_pos[0], last_pos[1], (-1, -1), NUMBER_TO_WIN):
             line_to_check = self.find_line(board, point, (1, 1), NUMBER_TO_WIN)
             if set(line_to_check) == {turn}:
-                self.sets[turn].append(last_pos)
+                self.sets[turn].append((point, 'D1'))
         
         # checks horizontal lines
         for column in range(last_pos[1] - NUMBER_TO_WIN + 1, last_pos[1] + 1):
             line_to_check = self.find_line(board, (last_pos[0], column), (0, 1), NUMBER_TO_WIN)
             if set(line_to_check) == {turn}:
-                self.sets[turn].append(last_pos)
+                self.sets[turn].append(((last_pos[0], column), 'H'))
         
         # checks bottom left to top right
         for point in self.start_points(last_pos[0], last_pos[1], (1, -1), NUMBER_TO_WIN):
             line_to_check = self.find_line(board, point, (-1, 1), NUMBER_TO_WIN)
             if set(line_to_check) == {turn}:
-                self.sets[turn].append(last_pos)
+                self.sets[turn].append((point, 'D2'))
 
         # checks vertical line
         line_to_check = self.find_line(board, last_pos, (1, 0), NUMBER_TO_WIN)
         if set(line_to_check) == {turn}:
-                self.sets[turn].append(last_pos)
+                self.sets[turn].append((last_pos, 'V'))
         
+        print(self.sets)        
         return len(self.sets[turn]) == SETS_TO_WIN
+    
+    # Checks if last move broke a line
+    def check_for_break(self, board):
+        vectors = {'D1': (1, 1),
+                   'H': (0, 1),
+                   'D2': (-1, 1),
+                   'V': (1, 0)}
+
+        for turn, lines in self.sets.items():
+            for start_pos, direction in lines[:]:
+                print(self.sets[turn], start_pos)
+                line_to_check = self.find_line(board, start_pos, vectors[direction], NUMBER_TO_WIN)
+                if set(line_to_check) != {turn}:
+                    self.sets[turn].remove((start_pos, direction))
+        return
 
 
     def switch_turn(self):  
