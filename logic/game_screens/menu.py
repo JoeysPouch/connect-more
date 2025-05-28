@@ -28,7 +28,6 @@ font = pygame.font.SysFont("arialblack", 40)
 TEXT_COL = (255, 255, 255)
 BUTTON_COL = (210, 105, 30)
 
-
 class Button:
     def __init__(self, name, location, status, appearance, tickable):
         self.name = name
@@ -49,10 +48,10 @@ class Button:
             x = event.pos[0] - 20
             if self.name == "Row Slider":
                 self.location[0] = max(50, min(x, 230))
-                rows = int((self.location[0] - 5)/7.5)
+                rows = int((self.location[0] - 5) / 7.5)
             else:
                 self.location[0] = max(450, min(x, 630))
-                columns = int((self.location[0] - 405)/7.5)
+                columns = int((self.location[0] - 405) / 7.5)
 
         if event.type == pygame.MOUSEBUTTONUP and event.button == 1 and self.dragging:
             self.dragging = False
@@ -123,7 +122,7 @@ class Button:
             config_variables["visible_tools"] = not config_variables["visible_tools"]
 
         if self.name == "Start":
-            config_variables["square_size"] = min(500/config_variables["row_count"], 1000/config_variables["column_count"])
+            config_variables["square_size"] = min(500 / config_variables["row_count"], 1000 / config_variables["column_count"])
             config_variables["start_game"] = True
             print(config_variables)
 
