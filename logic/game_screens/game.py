@@ -114,7 +114,7 @@ class TurnManager:
         self.remaining_drops = 1
         self.tool_locations = tool_locations
         self.first_move_made = False
-        self.sets = {1: [], 2: []}
+        self.sets = {1: [], 2: []}  # stores start point and direction of connections made
 
     def timers(self):
         if BULLET_MODE:

@@ -106,7 +106,7 @@ class Button:
             set1_button.status = False
             set2_button.status = False
         if self.name == "Low Frequency":
-            config_variables["tool_frequency"] = 0.1
+            config_variables["tool_chance"] = 0.1
             medium_freq_button.status = False
             high_freq_button.status = False
         if self.name == "Medium Frequency":
