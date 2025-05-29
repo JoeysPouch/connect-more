@@ -155,7 +155,7 @@ class TurnManager:
 
                     print(self.game_board.board)
 
-                    if current_tool.id == 2:
+                    if current_tool.id in (2, 4):
                         self.check_for_break(self.game_board.board)
 
                     if current_tool.single_use:
@@ -168,7 +168,6 @@ class TurnManager:
     
                     if current_tool.tile_id in (1, 1.5, 2):
                         if current_tool.id == -1 and current_tool.tile_id != self.current_player.id:
-                            self.check_for_break(self.game_board.board)
                             if self.winning_move(self.game_board.board, current_tool.tile_id, (ROW_COUNT - position[1] - 1, position[0])):  
                                 self.other_player.won = True    
                                 self.game_over = True
@@ -245,7 +244,7 @@ class TurnManager:
 
         for turn, lines in self.sets.items():
             for start_pos, direction in lines[:]:
-                print(self.sets[turn], start_pos)
+                # print(self.sets[turn], start_pos)
                 line_to_check = self.find_line(board, start_pos, vectors[direction], NUMBER_TO_WIN)
                 if set(line_to_check) != {turn}:
                     self.sets[turn].remove((start_pos, direction))
