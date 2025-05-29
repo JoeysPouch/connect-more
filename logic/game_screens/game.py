@@ -101,7 +101,7 @@ class Game:
                 if self.turn_manager.current_player.time == 0:
                     self.turn_manager.other_player.won = True
                     self.turn_manager.game_over = True
-            self.renderer.render(self.game_board.board, self.turn_manager.current_player, self.position, self.turn_manager.current_player.tools[self.turn_manager.tool_index], self.game_board.frozen_columns)
+            self.renderer.render(self.game_board.board, self.turn_manager.current_player, self.position, self.turn_manager.current_player.tools[self.turn_manager.tool_index], self.game_board.frozen_columns, self.turn_manager.game_over)
 
 class TurnManager:
     def __init__(self, board, position, player_1, player_2, tool_locations):
@@ -158,7 +158,7 @@ class TurnManager:
 
                     self.game_board.flip_board()
 
-                    print(self.game_board.board)
+                    # print(self.game_board.board)
 
                     if current_tool.id in (2, 4):
                         self.check_for_break(self.game_board.board)
@@ -271,7 +271,7 @@ class TurnManager:
         if set(line_to_check) == {turn}:
                 self.sets[turn].append((last_pos, 'V'))
         
-        print(self.sets)        
+        # print(self.sets)        
         return len(self.sets[turn]) == SETS_TO_WIN
     
     # Checks if last move broke a line
@@ -336,8 +336,6 @@ class TurnManager:
             self.current_player.won = True
         elif lines[self.current_player.id - 1] < lines[self.other_player.id - 1]:
             self.other_player.won = True
-        else:
-            print(":|")
         self.game_over = True
 
 
@@ -433,17 +431,18 @@ class Render:
         self.board = board
         self.paused = False
 
-    def render(self, board, turn, position, tool, frozen_columns):
+    def render(self, board, turn, position, tool, frozen_columns, game_over):
         animation_frames = self.get_animation_frames()
         self.draw_board(board, frozen_columns)
         for frame in animation_frames:
             self.window.blit(frame[0], frame[1])
-        if not self.paused:
+        if not self.paused and not game_over:
             self.draw_mouse_disc(turn, position, tool)
         if BULLET_MODE:
             self.draw_timer(self.players[0])
             self.draw_timer(self.players[1])
-        self.winner(self.players)
+        if game_over:
+            self.winner(self.players)
         self.final_render()
 
     def draw_board(self, board, frozen_columns):
@@ -494,14 +493,19 @@ class Render:
         return animation_frames
 
     def winner(self, players):
+        pygame.draw.rect(self.window, (255, 255, 255), (self.size[0] / 2 - 150, self.size[1] / 2 - 100, 300, 200))
+        font = pygame.font.SysFont("arialblack", 30)
+        message_displayed = False
         for player in players:
             if player.won:
-                pygame.draw.rect(self.window, (255, 255, 255), (self.size[0] / 2 - 150, self.size[1] / 2 - 100, 300, 200))
-                font = pygame.font.SysFont("arialblack", 30)
                 winner_message = font.render(f"Congats your when", True, (255, 100, 255))
                 winner_player = font.render(f"player  {player.id}", True, (255, 100, 255))
                 self.window.blit(winner_message, (self.size[0] / 2 - 150, self.size[1] / 2 - 100, 300, 200))
                 self.window.blit(winner_player, (self.size[0] / 2 - 150, self.size[1] / 2, 300, 200))
+                message_displayed = True
+        if not message_displayed:
+            tie_message = font.render(f"draw :|", True, (255, 100, 255))
+            self.window.blit(tie_message, (self.size[0] / 2 - 150, self.size[1] / 2 - 100, 300, 200))
 
     def final_render(self):        
         pygame.display.flip()
