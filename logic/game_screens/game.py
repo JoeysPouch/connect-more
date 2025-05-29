@@ -1,4 +1,5 @@
 import pygame
+import numpy as np
 import sys
 import random
 from copy import deepcopy
@@ -210,8 +211,8 @@ class TurnManager:
                             self.current_player.won = True
                             self.game_over = True
 
-                    if 0 not in self.game_board.board[0]:
-                        print("hi")
+                    if len(set(np.where(self.game_board.board[0] == 0)[0]) - set(self.game_board.frozen_columns.keys())) == 0:
+                        self.tiebreak(self.game_board.board)
                     
                     if current_tool.ends_turn:
                         self.remaining_drops -= 1
@@ -231,7 +232,7 @@ class TurnManager:
                 return [False]
             if pos[0] + k * vector[0] >= ROW_COUNT or pos[1] + k * vector[1] >= COLUMN_COUNT:
                 return [False]
-            next_tile = int(board[pos[0]+k*vector[0]][pos[1]+k*vector[1]])
+            next_tile = int(board[pos[0] + k * vector[0]][pos[1] + k * vector[1]])
             line.append(next_tile)
         return line
     
@@ -287,6 +288,57 @@ class TurnManager:
                 if set(line_to_check) != {turn}:
                     self.sets[turn].remove((start_pos, direction))
         return
+    
+    def tiebreak(self, board):
+        lines = [0, 0]
+
+        for c in range(COLUMN_COUNT - NUMBER_TO_WIN + 1):
+            for r in range(ROW_COUNT):
+                for i in range(NUMBER_TO_WIN - 2):
+                    if board[r][c + i] != board[r][c + i + 1]:
+                        break
+                    if i == NUMBER_TO_WIN - 3:
+                        row_id = int(board[r][c])
+                        if row_id in (1, 2):
+                            lines[row_id - 1] += 1
+
+        for c in range(COLUMN_COUNT):
+            for r in range(ROW_COUNT - NUMBER_TO_WIN + 1):
+                for i in range(NUMBER_TO_WIN - 2):
+                    if board[r + i][c] != board[r + i + 1][c]:
+                        break
+                    if i == NUMBER_TO_WIN - 3:
+                        row_id = int(board[r][c])
+                        if row_id in (1, 2):
+                            lines[row_id - 1] += 1
+
+        for c in range(COLUMN_COUNT - NUMBER_TO_WIN + 1):
+            for r in range(ROW_COUNT - NUMBER_TO_WIN + 1):
+                for i in range(NUMBER_TO_WIN - 2):
+                    if board[r + i][c + i] != board[r + i + 1][c + i + 1]:
+                        break
+                    if i == NUMBER_TO_WIN - 3:
+                        row_id = int(board[r][c])
+                        if row_id in (1, 2):
+                            lines[row_id - 1] += 1
+
+        for c in range(COLUMN_COUNT - NUMBER_TO_WIN + 1):
+            for r in range(NUMBER_TO_WIN - 2, ROW_COUNT):
+                for i in range(NUMBER_TO_WIN - 2):
+                    if board[r - i][c + i] != board[r - i - 1][c + i + 1]:
+                        break
+                    if i == NUMBER_TO_WIN - 3:
+                        row_id = int(board[r][c])
+                        if row_id in (1, 2):
+                            lines[row_id - 1] += 1
+
+        if lines[self.current_player.id % 2] > lines[(self.current_player.id + 1) % 2]:
+            self.current_player.won = True
+        elif lines[self.current_player.id % 2] < lines[(self.current_player.id + 1) % 2]:
+            self.other_player.won = True
+        else:
+            print(":|")
+        self.game_over = True
 
 
     def switch_turn(self):  
