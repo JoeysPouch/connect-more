@@ -162,7 +162,7 @@ class TurnManager:
                     if current_tool.id in (2, 4):
                         self.check_for_break(self.game_board.board)
 
-                    if current_tool.id in (-1, 0):
+                    if current_tool.id == 0:
                         d = -1
                         v = 10
                         fall_positions = []
@@ -199,16 +199,19 @@ class TurnManager:
                     self.tool_index = 0
 
                     if current_tool.id == 4:
-                        self.current_player.tools = [Tool(-1, held_tile_id, True, False, False, True, False), Tool(0, 3, True, True,  False, True, False)] + self.current_player.tools
+                        self.current_player.tools = [Tool(0, held_tile_id, True, False, False, True, False), Tool(0, 3, True, True,  False, True, False)] + self.current_player.tools
     
                     if current_tool.tile_id in (1, 1.5, 2):
-                        if current_tool.id == -1 and current_tool.tile_id != self.current_player.id:
+                        if current_tool.tile_id == self.other_player.id:
                             if self.winning_move(self.game_board.board, current_tool.tile_id, (ROW_COUNT - position[1] - 1, position[0])):  
                                 self.other_player.won = True    
                                 self.game_over = True
                         elif self.winning_move(self.game_board.board, self.current_player.id, (ROW_COUNT - position[1] - 1, position[0])):  
                             self.current_player.won = True
                             self.game_over = True
+
+                    if 0 not in self.game_board.board[0]:
+                        print("hi")
                     
                     if current_tool.ends_turn:
                         self.remaining_drops -= 1
