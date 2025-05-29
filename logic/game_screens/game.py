@@ -332,9 +332,9 @@ class TurnManager:
                         if row_id in (1, 2):
                             lines[row_id - 1] += 1
 
-        if lines[self.current_player.id % 2] > lines[(self.current_player.id + 1) % 2]:
+        if lines[self.current_player.id - 1] > lines[self.other_player.id - 1]:
             self.current_player.won = True
-        elif lines[self.current_player.id % 2] < lines[(self.current_player.id + 1) % 2]:
+        elif lines[self.current_player.id - 1] < lines[self.other_player.id - 1]:
             self.other_player.won = True
         else:
             print(":|")
