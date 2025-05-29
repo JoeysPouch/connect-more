@@ -118,6 +118,7 @@ class TurnManager:
         self.remaining_drops = 1
         self.tool_locations = tool_locations
         self.first_move_made = False
+        self.sets = {1: [], 2: []}  # stores start point and direction of connections made
 
     def timers(self):
         if BULLET_MODE:
@@ -156,7 +157,10 @@ class TurnManager:
 
                     self.game_board.flip_board()
 
-                    # print(self.game_board.board)
+                    print(self.game_board.board)
+
+                    if current_tool.id in (2, 4):
+                        self.check_for_break(self.game_board.board)
 
                     if current_tool.id in (-1, 0):
                         d = -1
@@ -196,7 +200,7 @@ class TurnManager:
 
                     if current_tool.id == 4:
                         self.current_player.tools = [Tool(-1, held_tile_id, True, False, False, True, False), Tool(0, 3, True, True,  False, True, False)] + self.current_player.tools
-
+    
                     if current_tool.tile_id in (1, 1.5, 2):
                         if current_tool.id == -1 and current_tool.tile_id != self.current_player.id:
                             if self.winning_move(self.game_board.board, current_tool.tile_id, (ROW_COUNT - position[1] - 1, position[0])):  
@@ -224,8 +228,8 @@ class TurnManager:
                 return [False]
             if pos[0] + k * vector[0] >= ROW_COUNT or pos[1] + k * vector[1] >= COLUMN_COUNT:
                 return [False]
-            next_letter = int(board[pos[0] + k * vector[0]][pos[1] + k * vector[1]])
-            line.append(next_letter)
+            next_tile = int(board[pos[0]+k*vector[0]][pos[1]+k*vector[1]])
+            line.append(next_tile)
         return line
     
     # generates list of positions to put in find_line to read all lines of given length in direction of given vector that contain point (row, column)
@@ -239,28 +243,47 @@ class TurnManager:
         
     # Checks if the last move created a win
     def winning_move(self, board, turn, last_pos):
-        # checks top left to bottom right diagoanals
+
+        # checks top left to bottom right diagonals
         for point in self.start_points(last_pos[0], last_pos[1], (-1, -1), NUMBER_TO_WIN):
             line_to_check = self.find_line(board, point, (1, 1), NUMBER_TO_WIN)
             if set(line_to_check) == {turn}:
-                return True
+                self.sets[turn].append((point, 'D1'))
         
         # checks horizontal lines
         for column in range(last_pos[1] - NUMBER_TO_WIN + 1, last_pos[1] + 1):
             line_to_check = self.find_line(board, (last_pos[0], column), (0, 1), NUMBER_TO_WIN)
             if set(line_to_check) == {turn}:
-                return True
+                self.sets[turn].append(((last_pos[0], column), 'H'))
         
         # checks bottom left to top right
         for point in self.start_points(last_pos[0], last_pos[1], (1, -1), NUMBER_TO_WIN):
             line_to_check = self.find_line(board, point, (-1, 1), NUMBER_TO_WIN)
             if set(line_to_check) == {turn}:
-                return True
+                self.sets[turn].append((point, 'D2'))
 
         # checks vertical line
         line_to_check = self.find_line(board, last_pos, (1, 0), NUMBER_TO_WIN)
         if set(line_to_check) == {turn}:
-                return True
+                self.sets[turn].append((last_pos, 'V'))
+        
+        print(self.sets)        
+        return len(self.sets[turn]) == SETS_TO_WIN
+    
+    # Checks if last move broke a line
+    def check_for_break(self, board):
+        vectors = {'D1': (1, 1),
+                   'H': (0, 1),
+                   'D2': (-1, 1),
+                   'V': (1, 0)}
+
+        for turn, lines in self.sets.items():
+            for start_pos, direction in lines[:]:
+                # print(self.sets[turn], start_pos)
+                line_to_check = self.find_line(board, start_pos, vectors[direction], NUMBER_TO_WIN)
+                if set(line_to_check) != {turn}:
+                    self.sets[turn].remove((start_pos, direction))
+        return
 
 
     def switch_turn(self):  
