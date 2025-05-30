@@ -292,7 +292,7 @@ class TurnManager:
     def tiebreak(self, board):
         lines = [0, 0]
 
-        for c in range(COLUMN_COUNT - NUMBER_TO_WIN + 1):
+        for c in range(COLUMN_COUNT - NUMBER_TO_WIN + 2):
             for r in range(ROW_COUNT):
                 for i in range(NUMBER_TO_WIN - 2):
                     if board[r][c + i] != board[r][c + i + 1]:
@@ -303,7 +303,7 @@ class TurnManager:
                             lines[row_id - 1] += 1
 
         for c in range(COLUMN_COUNT):
-            for r in range(ROW_COUNT - NUMBER_TO_WIN + 1):
+            for r in range(ROW_COUNT - NUMBER_TO_WIN + 2):
                 for i in range(NUMBER_TO_WIN - 2):
                     if board[r + i][c] != board[r + i + 1][c]:
                         break
@@ -312,8 +312,8 @@ class TurnManager:
                         if row_id in (1, 2):
                             lines[row_id - 1] += 1
 
-        for c in range(COLUMN_COUNT - NUMBER_TO_WIN + 1):
-            for r in range(ROW_COUNT - NUMBER_TO_WIN + 1):
+        for c in range(COLUMN_COUNT - NUMBER_TO_WIN + 2):
+            for r in range(ROW_COUNT - NUMBER_TO_WIN + 2):
                 for i in range(NUMBER_TO_WIN - 2):
                     if board[r + i][c + i] != board[r + i + 1][c + i + 1]:
                         break
@@ -322,7 +322,7 @@ class TurnManager:
                         if row_id in (1, 2):
                             lines[row_id - 1] += 1
 
-        for c in range(COLUMN_COUNT - NUMBER_TO_WIN + 1):
+        for c in range(COLUMN_COUNT - NUMBER_TO_WIN + 2):
             for r in range(NUMBER_TO_WIN - 2, ROW_COUNT):
                 for i in range(NUMBER_TO_WIN - 2):
                     if board[r - i][c + i] != board[r - i - 1][c + i + 1]:
