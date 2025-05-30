@@ -272,7 +272,7 @@ class TurnManager:
                 self.sets[turn].append((last_pos, 'V'))
         
         # print(self.sets)        
-        return len(self.sets[turn]) == SETS_TO_WIN
+        return len(self.sets[turn]) >= SETS_TO_WIN
     
     # Checks if last move broke a line
     def check_for_break(self, board):
