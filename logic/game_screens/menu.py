@@ -17,6 +17,7 @@ pygame.init()
 
 pygame.mixer.music.load(f'./assets/sound/menu_music.wav')
 pygame.mixer.music.play(-1)
+pygame.mixer.music.set_volume(0.2)
 SCREEN_HEIGHT = 640
 SCREEN_WIDTH = 720
 size = (SCREEN_WIDTH, SCREEN_HEIGHT)
