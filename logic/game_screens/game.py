@@ -70,7 +70,7 @@ class Game:
                 'layer_5': Sounds(True, False, 'layer_5').upload_sound(),
                 'layer_6': Sounds(True, False, 'layer_6').upload_sound(),                    
                 'bomb': Sounds(False, True, 'bomb_sound').upload_sound(),
-                'piece': Sounds(False, True, 'piece_sound').upload_sound(),
+                'piece': Sounds(False, True, 'piece_sound').upload_sound()
             }
 
             self.audio['layer_1'].set_volume(1.0)
@@ -123,10 +123,11 @@ class TurnManager:
     def timers(self):
         if BULLET_MODE:
             if self.first_move_made:
-                self.current_player.ticks += 1
-                if self.current_player.ticks % 60 == 0:
-                    self.current_player.time -= 1
-                    self.current_player.time = max(0, self.current_player.time)
+                if not self.game_over:
+                    self.current_player.ticks += 1
+                    if self.current_player.ticks % 60 == 0:
+                        self.current_player.time -= 1
+                        self.current_player.time = max(0, self.current_player.time)
 
     def player_turn(self, animations):
         if not self.game_over:
@@ -217,6 +218,15 @@ class TurnManager:
                         self.tool_used = False
                     else:
                         self.tool_used = True
+
+
+                    if self.game_over:
+                        if BULLET_MODE:
+                            pygame.mixer.music.fadeout(300)
+                            pygame.mixer.music.load(f'./assets/sound/win_music.wav')
+                            pygame.mixer.music.play(0)   
+                        else:
+                            pass
 
 
 
