@@ -1,4 +1,5 @@
 import pygame
+import numpy as np
 import sys
 import random
 from copy import deepcopy
@@ -100,7 +101,7 @@ class Game:
                 if self.turn_manager.current_player.time == 0:
                     self.turn_manager.other_player.won = True
                     self.turn_manager.game_over = True
-            self.renderer.render(self.game_board.board, self.turn_manager.current_player, self.position, self.turn_manager.current_player.tools[self.turn_manager.tool_index], self.game_board.frozen_columns)
+            self.renderer.render(self.game_board.board, self.turn_manager.current_player, self.position, self.turn_manager.current_player.tools[self.turn_manager.tool_index], self.game_board.frozen_columns, self.turn_manager.game_over)
 
 class TurnManager:
     def __init__(self, board, position, player_1, player_2, tool_locations):
@@ -157,12 +158,12 @@ class TurnManager:
 
                     self.game_board.flip_board()
 
-                    print(self.game_board.board)
+                    # print(self.game_board.board)
 
                     if current_tool.id in (2, 4):
                         self.check_for_break(self.game_board.board)
 
-                    if current_tool.id in (-1, 0):
+                    if current_tool.id == 0:
                         d = -1
                         v = 10
                         fall_positions = []
@@ -199,16 +200,28 @@ class TurnManager:
                     self.tool_index = 0
 
                     if current_tool.id == 4:
-                        self.current_player.tools = [Tool(-1, held_tile_id, True, False, False, True, False), Tool(0, 3, True, True,  False, True, False)] + self.current_player.tools
+                        self.current_player.tools = [Tool(0, held_tile_id, True, False, False, True, False), Tool(0, 3, True, True,  False, True, False)] + self.current_player.tools
     
                     if current_tool.tile_id in (1, 1.5, 2):
-                        if current_tool.id == -1 and current_tool.tile_id != self.current_player.id:
+                        if current_tool.tile_id == self.other_player.id:
                             if self.winning_move(self.game_board.board, current_tool.tile_id, (ROW_COUNT - position[1] - 1, position[0])):  
                                 self.other_player.won = True    
                                 self.game_over = True
                         elif self.winning_move(self.game_board.board, self.current_player.id, (ROW_COUNT - position[1] - 1, position[0])):  
                             self.current_player.won = True
                             self.game_over = True
+
+                    if 0 not in self.game_board.board[0]:
+                        if self.sets[self.current_player.id] > self.sets[self.other_player.id]:
+                            self.current_player.won = True
+                        elif self.sets[self.current_player.id] < self.sets[self.other_player.id]:
+                            self.other_player.won = True   
+                        else:
+                            self.tiebreak(self.game_board.board)
+                        self.game_over = True
+                    else:
+                        while len(set(np.where(self.game_board.board[0] == 0)[0]) - set(self.game_board.frozen_columns.keys())) == 0:
+                            self.switch_turn()
                     
                     if current_tool.ends_turn:
                         self.remaining_drops -= 1
@@ -228,7 +241,7 @@ class TurnManager:
                 return [False]
             if pos[0] + k * vector[0] >= ROW_COUNT or pos[1] + k * vector[1] >= COLUMN_COUNT:
                 return [False]
-            next_tile = int(board[pos[0]+k*vector[0]][pos[1]+k*vector[1]])
+            next_tile = int(board[pos[0] + k * vector[0]][pos[1] + k * vector[1]])
             line.append(next_tile)
         return line
     
@@ -267,8 +280,8 @@ class TurnManager:
         if set(line_to_check) == {turn}:
                 self.sets[turn].append((last_pos, 'V'))
         
-        print(self.sets)        
-        return len(self.sets[turn]) == SETS_TO_WIN
+        # print(self.sets)        
+        return len(self.sets[turn]) >= SETS_TO_WIN
     
     # Checks if last move broke a line
     def check_for_break(self, board):
@@ -284,6 +297,54 @@ class TurnManager:
                 if set(line_to_check) != {turn}:
                     self.sets[turn].remove((start_pos, direction))
         return
+    
+    def tiebreak(self, board):
+        lines = [0, 0]
+
+        for c in range(COLUMN_COUNT - NUMBER_TO_WIN + 2):
+            for r in range(ROW_COUNT):
+                for i in range(NUMBER_TO_WIN - 2):
+                    if board[r][c + i] != board[r][c + i + 1]:
+                        break
+                    if i == NUMBER_TO_WIN - 3:
+                        row_id = int(board[r][c])
+                        if row_id in (1, 2):
+                            lines[row_id - 1] += 1
+
+        for c in range(COLUMN_COUNT):
+            for r in range(ROW_COUNT - NUMBER_TO_WIN + 2):
+                for i in range(NUMBER_TO_WIN - 2):
+                    if board[r + i][c] != board[r + i + 1][c]:
+                        break
+                    if i == NUMBER_TO_WIN - 3:
+                        row_id = int(board[r][c])
+                        if row_id in (1, 2):
+                            lines[row_id - 1] += 1
+
+        for c in range(COLUMN_COUNT - NUMBER_TO_WIN + 2):
+            for r in range(ROW_COUNT - NUMBER_TO_WIN + 2):
+                for i in range(NUMBER_TO_WIN - 2):
+                    if board[r + i][c + i] != board[r + i + 1][c + i + 1]:
+                        break
+                    if i == NUMBER_TO_WIN - 3:
+                        row_id = int(board[r][c])
+                        if row_id in (1, 2):
+                            lines[row_id - 1] += 1
+
+        for c in range(COLUMN_COUNT - NUMBER_TO_WIN + 2):
+            for r in range(NUMBER_TO_WIN - 2, ROW_COUNT):
+                for i in range(NUMBER_TO_WIN - 2):
+                    if board[r - i][c + i] != board[r - i - 1][c + i + 1]:
+                        break
+                    if i == NUMBER_TO_WIN - 3:
+                        row_id = int(board[r][c])
+                        if row_id in (1, 2):
+                            lines[row_id - 1] += 1
+
+        if lines[self.current_player.id - 1] > lines[self.other_player.id - 1]:
+            self.current_player.won = True
+        elif lines[self.current_player.id - 1] < lines[self.other_player.id - 1]:
+            self.other_player.won = True
 
 
     def switch_turn(self):  
@@ -378,17 +439,18 @@ class Render:
         self.board = board
         self.paused = False
 
-    def render(self, board, turn, position, tool, frozen_columns):
+    def render(self, board, turn, position, tool, frozen_columns, game_over):
         animation_frames = self.get_animation_frames()
         self.draw_board(board, frozen_columns)
         for frame in animation_frames:
             self.window.blit(frame[0], frame[1])
-        if not self.paused:
+        if not self.paused and not game_over:
             self.draw_mouse_disc(turn, position, tool)
         if BULLET_MODE:
             self.draw_timer(self.players[0])
             self.draw_timer(self.players[1])
-        self.winner(self.players)
+        if game_over:
+            self.winner(self.players)
         self.final_render()
 
     def draw_board(self, board, frozen_columns):
@@ -439,14 +501,19 @@ class Render:
         return animation_frames
 
     def winner(self, players):
+        pygame.draw.rect(self.window, (255, 255, 255), (self.size[0] / 2 - 150, self.size[1] / 2 - 100, 300, 200))
+        font = pygame.font.SysFont("arialblack", 30)
+        message_displayed = False
         for player in players:
             if player.won:
-                pygame.draw.rect(self.window, (255, 255, 255), (self.size[0] / 2 - 150, self.size[1] / 2 - 100, 300, 200))
-                font = pygame.font.SysFont("arialblack", 30)
                 winner_message = font.render(f"Congats your when", True, (255, 100, 255))
                 winner_player = font.render(f"player  {player.id}", True, (255, 100, 255))
                 self.window.blit(winner_message, (self.size[0] / 2 - 150, self.size[1] / 2 - 100, 300, 200))
                 self.window.blit(winner_player, (self.size[0] / 2 - 150, self.size[1] / 2, 300, 200))
+                message_displayed = True
+        if not message_displayed:
+            tie_message = font.render(f"draw :|", True, (255, 100, 255))
+            self.window.blit(tie_message, (self.size[0] / 2 - 150, self.size[1] / 2 - 100, 300, 200))
 
     def final_render(self):        
         pygame.display.flip()
