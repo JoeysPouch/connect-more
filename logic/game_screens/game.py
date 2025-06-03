@@ -211,7 +211,7 @@ class TurnManager:
                             self.current_player.won = True
                             self.game_over = True
 
-                    if len(set(np.where(self.game_board.board[0] == 0)[0]) - set(self.game_board.frozen_columns.keys())) == 0:
+                    if 0 not in self.game_board.board[0]:
                         if self.sets[self.current_player.id] > self.sets[self.other_player.id]:
                             self.current_player.won = True
                         elif self.sets[self.current_player.id] < self.sets[self.other_player.id]:
@@ -219,6 +219,9 @@ class TurnManager:
                         else:
                             self.tiebreak(self.game_board.board)
                         self.game_over = True
+                    else:
+                        while len(set(np.where(self.game_board.board[0] == 0)[0]) - set(self.game_board.frozen_columns.keys())) == 0:
+                            self.switch_turn()
                     
                     if current_tool.ends_turn:
                         self.remaining_drops -= 1
