@@ -220,9 +220,6 @@ class TurnManager:
                         else:
                             self.tiebreak(self.game_board.board)
                         self.game_over = True
-                    else:
-                        while len(set(np.where(self.game_board.board[0] == 0)[0]) - set(self.game_board.frozen_columns.keys())) == 0:
-                            self.switch_turn()
                     
                     if current_tool.ends_turn:
                         self.remaining_drops -= 1
@@ -232,6 +229,8 @@ class TurnManager:
                     else:
                         self.tool_used = True
 
+                    while not self.game_over and len(set(np.where(self.game_board.board[0] == 0)[0]) - set(self.game_board.frozen_columns.keys())) == 0:
+                        self.switch_turn()
 
                     if self.game_over:
                         if BULLET_MODE:
