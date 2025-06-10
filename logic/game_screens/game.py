@@ -11,16 +11,20 @@ from logic.components.tool import Tool
 from logic.components.animation import Animation
 from logic.game_screens.menu import config_variables
 
-ROW_COUNT = config_variables["row_count"]
-COLUMN_COUNT = config_variables["column_count"]
-SQUARE_SIZE = config_variables["square_size"]
-ELIGIBLE_TOOLS = config_variables["eligible_tools"]
-NUMBER_TO_WIN = config_variables["number_to_win"]
-SETS_TO_WIN = config_variables["sets_to_win"]
-BULLET_MODE = config_variables["bullet_mode"]
-TOOL_CHANCE = config_variables["tool_chance"]
-VISIBLE_TOOLS = config_variables["visible_tools"]
-START_GAME = config_variables["start_game"]
+def update_globals():
+    global ROW_COUNT, COLUMN_COUNT, SQUARE_SIZE, ELIGIBLE_TOOLS, NUMBER_TO_WIN, SETS_TO_WIN, BULLET_MODE, TOOL_CHANCE, VISIBLE_TOOLS, START_GAME
+    
+    cfg = config_variables
+    ROW_COUNT = cfg["row_count"]
+    COLUMN_COUNT = cfg["column_count"]
+    SQUARE_SIZE = cfg["square_size"]
+    ELIGIBLE_TOOLS = cfg["eligible_tools"]
+    NUMBER_TO_WIN = cfg["number_to_win"]
+    SETS_TO_WIN = cfg["sets_to_win"]
+    BULLET_MODE = cfg["bullet_mode"]
+    TOOL_CHANCE = cfg["tool_chance"]
+    VISIBLE_TOOLS = cfg["visible_tools"]
+    START_GAME = cfg["start_game"]
 
 
 # This contains the main game handling and data
@@ -39,7 +43,10 @@ class Game:
         self.window = pygame.display.set_mode(size)
         self.position = (screen_width / 2, screen_height / 2)
         self.pieces = 0
+        self.return_to_menu = False
         self.clock = pygame.time.Clock()
+        self.game_over = False
+
 
         # Generate tools
         self.tool_locations = {}
@@ -90,10 +97,11 @@ class Game:
         self.renderer = Render(self.window, self.square_size, self.background_colour, self.player_1, self.player_2, self.tool_locations, size, self.game_board.board)
 
         self.game_loop()
-
     
     def game_loop(self):
         while True:
+            if self.return_to_menu:
+                break
             self.clock.tick(60)
             self.turn_manager.timers()
             self.event_handler.events()
@@ -102,6 +110,7 @@ class Game:
                     self.turn_manager.other_player.won = True
                     self.turn_manager.game_over = True
             self.renderer.render(self.game_board.board, self.turn_manager.current_player, self.position, self.turn_manager.current_player.tools[self.turn_manager.tool_index], self.game_board.frozen_columns, self.turn_manager.game_over)
+
 
 class TurnManager:
     def __init__(self, board, position, player_1, player_2, tool_locations):
@@ -385,11 +394,17 @@ class EventHandler:
                 self.mouse_movement(event)
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE and not self.game.turn_manager.tool_used:
                 self.switch_tool(self.game.turn_manager.tool_index)
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN and self.game.turn_manager.game_over:
+                self.game.return_to_menu = True
+                pygame.mixer.stop()
+                config_variables["start_game"] = False
+
+            
 
         if not BULLET_MODE:
             for layer in ['layer_2', 'layer_3', 'layer_4', 'layer_5', 'layer_6']:
                 if self.game.audio[layer].increasing:
-                    self.game.audio[layer].increase_volume(0.0005)
+                    self.game.audio[layer].increase_volume(0.005)
 
     def clicks(self):
         if not self.game.turn_manager.game_over and not self.game.renderer.paused:
@@ -515,14 +530,18 @@ class Render:
         message_displayed = False
         for player in players:
             if player.won:
-                winner_message = font.render(f"Congats your when", True, (255, 100, 255))
+                winner_message_1 = font.render(f"Congats your when", True, (255, 100, 255))
                 winner_player = font.render(f"player  {player.id}", True, (255, 100, 255))
-                self.window.blit(winner_message, (self.size[0] / 2 - 150, self.size[1] / 2 - 100, 300, 200))
+                menu_message = font.render(f"Press Enter to return to menu", True, (255, 100, 255))
+                self.window.blit(winner_message_1, (self.size[0] / 2 - 150, self.size[1] / 2 - 50, 300, 200))
                 self.window.blit(winner_player, (self.size[0] / 2 - 150, self.size[1] / 2, 300, 200))
+                self.window.blit(menu_message, (self.size[0] / 2 - 150, self.size[1] / 2 + 50, 300, 200))
                 message_displayed = True
         if not message_displayed:
             tie_message = font.render(f"draw :|", True, (255, 100, 255))
             self.window.blit(tie_message, (self.size[0] / 2 - 150, self.size[1] / 2 - 100, 300, 200))
+            self.window.blit(menu_message, (self.size[0] / 2 - 150, self.size[1] / 2, 300, 200))
+
 
     def final_render(self):        
         pygame.display.flip()

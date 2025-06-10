@@ -13,21 +13,20 @@ config_variables = {
     "start_game": False
 }
 
-pygame.init()
 
-pygame.mixer.music.load(f'./assets/sound/menu_music.wav')
-pygame.mixer.music.play(-1)
-pygame.mixer.music.set_volume(0.2)
-SCREEN_HEIGHT = 640
-SCREEN_WIDTH = 720
-size = (SCREEN_WIDTH, SCREEN_HEIGHT)
-BACKGROUND_COLOUR = (244,164,96)
-window = pygame.display.set_mode(size, pygame.RESIZABLE)
-pygame.display.flip()
+pygame.init()
 
 font = pygame.font.SysFont("arialblack", 40)
 TEXT_COL = (255, 255, 255)
 BUTTON_COL = (210, 105, 30)
+BACKGROUND_COLOUR = (244,164,96)
+SCREEN_HEIGHT = 640
+SCREEN_WIDTH = 720
+size = (SCREEN_WIDTH, SCREEN_HEIGHT)
+window = pygame.display.set_mode(size, pygame.RESIZABLE)
+pygame.display.flip()
+window.fill(BACKGROUND_COLOUR)
+
 
 class Button:
     def __init__(self, name, location, status, appearance, tickable):
@@ -200,6 +199,12 @@ def clicks(event):
             print(button.name)
 
 def run_menu():
+    pygame.mixer.music.load(f'./assets/sound/menu_music.wav')
+    if not config_variables["start_game"]:
+        pygame.mixer.music.play(-1)
+        pygame.mixer.music.set_volume(0.2)
+    window = pygame.display.set_mode(size, pygame.RESIZABLE)
+    pygame.display.flip()
     while True:
 
         #Render
@@ -247,14 +252,13 @@ def run_menu():
                 clicks(event)
 
         if config_variables["start_game"]:
-            pygame.mixer.music.fadeout(1500)
+            pygame.mixer.music.fadeout(750)
             return
         
         pygame.display.flip()
 
 def start_game():
     return config_variables["start_game"]
-
 
 run_menu()
 
