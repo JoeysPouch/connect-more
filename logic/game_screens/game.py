@@ -528,11 +528,11 @@ class Render:
         pygame.draw.rect(self.window, (255, 255, 255), (self.size[0] / 2 - 150, self.size[1] / 2 - 100, 300, 200))
         font = pygame.font.SysFont("arialblack", 30)
         message_displayed = False
+        menu_message = font.render(f"Press Enter to return to menu", True, (255, 100, 255))
         for player in players:
             if player.won:
                 winner_message_1 = font.render(f"Congats your when", True, (255, 100, 255))
                 winner_player = font.render(f"player  {player.id}", True, (255, 100, 255))
-                menu_message = font.render(f"Press Enter to return to menu", True, (255, 100, 255))
                 self.window.blit(winner_message_1, (self.size[0] / 2 - 150, self.size[1] / 2 - 50, 300, 200))
                 self.window.blit(winner_player, (self.size[0] / 2 - 150, self.size[1] / 2, 300, 200))
                 self.window.blit(menu_message, (self.size[0] / 2 - 150, self.size[1] / 2 + 50, 300, 200))
