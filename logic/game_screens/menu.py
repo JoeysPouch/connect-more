@@ -30,7 +30,7 @@ window.fill(BACKGROUND_COLOUR)
 
 
 class Button:
-    def __init__(self, name, location, status, appearance, tickable):
+    def __init__(self, name, location, status, appearance, tickable, font=big_font):
         self.name = name
         self.location = location
         self.status = status
@@ -38,6 +38,7 @@ class Button:
         self.tickable = tickable
         self.dragging = False
         self.is_slider = appearance == "slider"
+        self.font = font
 
     def slider(self, event, rows, columns):
         
@@ -137,13 +138,13 @@ class Button:
 
 title_button = Button("Title", [150, 15, 390, 70], True, "CONNECT MORE", False) # why are you a button?
 
-start_button = Button("Start", [260, 600, 200, 60], False, " START", False)
+start_button = Button("Start", [260, 650, 200, 60], False, " START", False)
 
-bullet_mode = Button("Bullet Mode", [640, 100, 60, 60], False, "", True)
+bullet_mode = Button("Bullet Mode", [580, 410, 40, 40], False, "", True, small_font)
 
-connect4_button = Button("Connect 4", [50, 250, 60, 60], True, "4", True)
-connect5_button = Button("Connect 5", [130, 250, 60, 60], False, "5", True)
-connect6_button = Button("Connect 6", [210, 250, 60, 60], False, "6", True)
+connect4_button = Button("Connect 4", [50, 410, 40, 40], True, "4", True, small_font)
+connect5_button = Button("Connect 5", [115, 410, 40, 40], False, "5", True, small_font)
+connect6_button = Button("Connect 6", [180, 410, 40, 40], False, "6", True, small_font)
 
 bomb_button = Button("Bomb", [50, 400, 60, 60], False, f"./assets/images/bomb.png", True)
 floating_tile_button = Button("Floating Tile", [130, 400, 60, 60], False, f"./assets/images/bomb.png", True)
@@ -151,34 +152,34 @@ magnet_button = Button("Magnet", [210, 400, 60, 60], False, f"./assets/images/bo
 freeze_button = Button("Freeze", [290, 330, 60, 60], False, f"./assets/images/freeze.png", True)
 visible_tools = Button("Items Visible", [290, 400, 60, 60], True, "", True)
 
-set1_button = Button("1 Set", [450, 250, 60, 60], True, "1", True)
-set2_button = Button("2 Sets", [530, 250, 60, 60], False, "2", True)
-set3_button = Button("3 Sets", [610, 250, 60, 60], False, "3", True)
+set1_button = Button("1 Set", [275, 410, 40, 40], True, "1", True, small_font)
+set2_button = Button("2 Sets", [340, 410, 40, 40], False, "2", True, small_font)
+set3_button = Button("3 Sets", [405, 410, 40, 40], False, "3", True, small_font)
 
 low_freq_button = Button("Low Frequency", [450, 400, 60, 60], False, "L", True)
 medium_freq_button = Button("Medium Frequency", [530, 400, 60, 60], False, "M", True)
 high_freq_button = Button("High Frequency", [610, 400, 60, 60], False, "H", True)
 
-rows_label = Button("Rows", [55, 240, 220, 40], True, None, False)
-columns_label = Button("Columns", [400, 240, 220, 40], True, None, False)
-row_slider = Button("Row Slider", [55, 220, 30, 80], False, "slider", False)
-column_slider = Button("Column Slider", [400, 220, 30, 80], False, "slider", False)
+rows_label = Button("Rows", [55, 230, 220, 30], True, None, False)
+columns_label = Button("Columns", [400, 230, 220, 30], True, None, False)
+row_slider = Button("Row Slider", [55, 220, 30, 50], False, "slider", False)
+column_slider = Button("Column Slider", [400, 220, 30, 50], False, "slider", False)
 
 buttons = [
     title_button,
     start_button,
-    # bullet_mode,
+    bullet_mode,
     # visible_tools,
-    # connect4_button,
-    # connect5_button,
-    # connect6_button,
+    connect4_button,
+    connect5_button,
+    connect6_button,
     # bomb_button,
     # floating_tile_button,
     # magnet_button,
     # freeze_button,
-    # set1_button,
-    # set2_button,
-    # set3_button,
+    set1_button,
+    set2_button,
+    set3_button,
     # low_freq_button,
     # medium_freq_button,
     # high_freq_button,
@@ -188,8 +189,8 @@ buttons = [
     column_slider
 ]
 
-def draw_text(text, big_font, text_col, x, y):
-    img = big_font.render(text, True, text_col)
+def draw_text(text, font, text_col, x, y):
+    img = font.render(text, True, text_col)
     window.blit(img, (x,y))
 
 def clicks(event):
@@ -219,24 +220,26 @@ def run_menu():
                     window.blit(sprite, (button.location[0], button.location[1]))
                 
                 elif button.is_slider:
-                    pygame.draw.rect(window, (120, 52, 25), (button.location[0], button.location[1], 30, 80))
+                    pygame.draw.rect(window, (120, 52, 25), (button.location[0], button.location[1], 30, 50))
                 else:
-                    draw_text(button.appearance, big_font, TEXT_COL, button.location[0] + 15, button.location[1])
+                    draw_text(button.appearance, button.font, TEXT_COL, button.location[0] + 10, button.location[1])
 
                 if button.status and button.tickable:
-                    overlay = pygame.Surface((60, 60), pygame.SRCALPHA)
+                    overlay = pygame.Surface((40, 40), pygame.SRCALPHA)
                     overlay.fill((0, 0, 0, 100))
                     window.blit(overlay, (button.location[0], button.location[1]))
-                    pygame.draw.line(window, (0, 255, 0), (button.location[0] + 0, button.location[1] + 40), (button.location[0] + 20, button.location[1] + 60), 15)
-                    pygame.draw.line(window, (0, 255, 0), (button.location[0] + 20, button.location[1] + 60), (button.location[0] + 60, button.location[1] - 10), 15)
+                    pygame.draw.line(window, (0, 200, 0), (button.location[0], button.location[1] + button.location[3]/2), (button.location[0] + button.location[2]/3, button.location[1] + button.location[3]), 10)
+                    pygame.draw.line(window, (0, 200, 0), (button.location[0] + button.location[2]/3, button.location[1] + button.location[3]), (button.location[0] + button.location[2], button.location[1]), 10)
                 
 
         draw_text("Board Size", big_font, TEXT_COL, 45, 105)
         draw_text(f"Rows: {config_variables["row_count"]}", small_font, TEXT_COL, 110, 170)
         draw_text(f"Columns: {config_variables["column_count"]}", small_font, TEXT_COL, 430, 170)
-        # draw_text("Connect?", big_font, TEXT_COL, 60, 180)
+        draw_text("Rules", big_font, TEXT_COL, 45, 300)
+        draw_text("Connect", small_font, TEXT_COL, 45, 355)
+        draw_text("Sets to Win", small_font, TEXT_COL, 275, 355)
+        draw_text("Bullet Mode", small_font, TEXT_COL, 520, 355)
         # draw_text("Powerups", big_font, TEXT_COL, 55, 330)
-        # draw_text("Sets to Win", big_font, TEXT_COL, 440, 180)
         # draw_text("Frequency", big_font, TEXT_COL, 445, 330)
 
 
