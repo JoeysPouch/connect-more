@@ -16,11 +16,12 @@ config_variables = {
 
 pygame.init()
 
-font = pygame.font.SysFont("arialblack", 40)
+big_font = pygame.font.SysFont("arialblack", 35)
+small_font = pygame.font.SysFont("arialblack", 25)
 TEXT_COL = (255, 255, 255)
 BUTTON_COL = (210, 105, 30)
 BACKGROUND_COLOUR = (244,164,96)
-SCREEN_HEIGHT = 640
+SCREEN_HEIGHT = 720
 SCREEN_WIDTH = 720
 size = (SCREEN_WIDTH, SCREEN_HEIGHT)
 window = pygame.display.set_mode(size, pygame.RESIZABLE)
@@ -45,13 +46,13 @@ class Button:
             self.dragging = True
 
         elif event.type == pygame.MOUSEMOTION and self.dragging:
-            x = event.pos[0] - 20
+            x = event.pos[0] - 15
             if self.name == "Row Slider":
-                self.location[0] = max(50, min(x, 230))
-                rows = int((self.location[0] - 5) / 7.5)
+                self.location[0] = max(55, min(x, 245))
+                rows = int((self.location[0] - 10) / 7.5)
             else:
-                self.location[0] = max(450, min(x, 630))
-                columns = int((self.location[0] - 405) / 7.5)
+                self.location[0] = max(400, min(x, 590))
+                columns = int((self.location[0] - 355) / 7.5)
 
         if event.type == pygame.MOUSEBUTTONUP and event.button == 1 and self.dragging:
             self.dragging = False
@@ -134,9 +135,9 @@ class Button:
 
 #Buttons
 
-title_button = Button("Title", [150, 15, 390, 70], True, "CONNECT MORE", False)
+title_button = Button("Title", [150, 15, 390, 70], True, "CONNECT MORE", False) # why are you a button?
 
-start_button = Button("Start", [260, 100, 200, 60], False, " START", False)
+start_button = Button("Start", [260, 600, 200, 60], False, " START", False)
 
 bullet_mode = Button("Bullet Mode", [640, 100, 60, 60], False, "", True)
 
@@ -158,42 +159,42 @@ low_freq_button = Button("Low Frequency", [450, 400, 60, 60], False, "L", True)
 medium_freq_button = Button("Medium Frequency", [530, 400, 60, 60], False, "M", True)
 high_freq_button = Button("High Frequency", [610, 400, 60, 60], False, "H", True)
 
-rows_label = Button("Rows", [50, 550, 220, 60], True, None, False)
-columns_label = Button("Columns", [450, 550, 220, 60], True, None, False)
-row_slider = Button("Row Slider", [50, 540, 40, 80], False, "slider", False)
-column_slider = Button("Column Slider", [450, 540, 40, 80], False, "slider", False)
+rows_label = Button("Rows", [55, 240, 220, 40], True, None, False)
+columns_label = Button("Columns", [400, 240, 220, 40], True, None, False)
+row_slider = Button("Row Slider", [55, 220, 30, 80], False, "slider", False)
+column_slider = Button("Column Slider", [400, 220, 30, 80], False, "slider", False)
 
 buttons = [
     title_button,
     start_button,
-    bullet_mode,
-    visible_tools,
-    connect4_button,
-    connect5_button,
-    connect6_button,
-    bomb_button,
-    floating_tile_button,
-    magnet_button,
-    freeze_button,
+    # bullet_mode,
+    # visible_tools,
+    # connect4_button,
+    # connect5_button,
+    # connect6_button,
+    # bomb_button,
+    # floating_tile_button,
+    # magnet_button,
+    # freeze_button,
+    # set1_button,
+    # set2_button,
+    # set3_button,
+    # low_freq_button,
+    # medium_freq_button,
+    # high_freq_button,
     rows_label,
-    set1_button,
-    set2_button,
-    set3_button,
-    low_freq_button,
-    medium_freq_button,
-    high_freq_button,
     columns_label,
     row_slider,
-    column_slider,
+    column_slider
 ]
 
-def draw_text(text, font, text_col, x, y):
-    img = font.render(text, True, text_col)
+def draw_text(text, big_font, text_col, x, y):
+    img = big_font.render(text, True, text_col)
     window.blit(img, (x,y))
 
 def clicks(event):
     for button in buttons:
-        rect = pygame.Rect(button.location[0], button.location[1], button.location[2], button.location[3])
+        rect = pygame.Rect(button.location)
         if rect.collidepoint(event.pos[0], event.pos[1]):
             button.action_from_click()
             print(button.name)
@@ -218,9 +219,9 @@ def run_menu():
                     window.blit(sprite, (button.location[0], button.location[1]))
                 
                 elif button.is_slider:
-                    pygame.draw.rect(window, (200, 200, 200), (button.location[0], button.location[1], 40, 80))
+                    pygame.draw.rect(window, (120, 52, 25), (button.location[0], button.location[1], 30, 80))
                 else:
-                    draw_text(button.appearance, font, TEXT_COL, button.location[0] + 15, button.location[1])
+                    draw_text(button.appearance, big_font, TEXT_COL, button.location[0] + 15, button.location[1])
 
                 if button.status and button.tickable:
                     overlay = pygame.Surface((60, 60), pygame.SRCALPHA)
@@ -229,16 +230,18 @@ def run_menu():
                     pygame.draw.line(window, (0, 255, 0), (button.location[0] + 0, button.location[1] + 40), (button.location[0] + 20, button.location[1] + 60), 15)
                     pygame.draw.line(window, (0, 255, 0), (button.location[0] + 20, button.location[1] + 60), (button.location[0] + 60, button.location[1] - 10), 15)
                 
-            
-        draw_text("Connect?", font, TEXT_COL, 60, 180)
-        draw_text("Powerups", font, TEXT_COL, 55, 330)
-        draw_text("Rows", font, TEXT_COL, 100, 480)
-        draw_text("Sets to Win", font, TEXT_COL, 440, 180)
-        draw_text("Frequency", font, TEXT_COL, 445, 330)
-        draw_text("Columns", font, TEXT_COL, 470, 480)
 
-        draw_text(str(config_variables["row_count"]), font, TEXT_COL, 280, 550)
-        draw_text(str(config_variables["column_count"]), font, TEXT_COL, 410 if config_variables["column_count"] < 10 else 385, 550)
+        draw_text("Board Size", big_font, TEXT_COL, 45, 105)
+        draw_text(f"Rows: {config_variables["row_count"]}", small_font, TEXT_COL, 110, 170)
+        draw_text(f"Columns: {config_variables["column_count"]}", small_font, TEXT_COL, 430, 170)
+        # draw_text("Connect?", big_font, TEXT_COL, 60, 180)
+        # draw_text("Powerups", big_font, TEXT_COL, 55, 330)
+        # draw_text("Sets to Win", big_font, TEXT_COL, 440, 180)
+        # draw_text("Frequency", big_font, TEXT_COL, 445, 330)
+
+
+        # draw_text(str(config_variables["row_count"]), small_font, TEXT_COL, 150 if config_variables["row_count"] < 10 else 140, 310)
+        # draw_text(str(config_variables["column_count"]), small_font, TEXT_COL, 500 if config_variables["column_count"] < 10 else 490, 310)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
