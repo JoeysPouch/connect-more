@@ -146,10 +146,10 @@ connect4_button = Button("Connect 4", [50, 380, 40, 40], True, "4", True, small_
 connect5_button = Button("Connect 5", [115, 380, 40, 40], False, "5", True, small_font)
 connect6_button = Button("Connect 6", [180, 380, 40, 40], False, "6", True, small_font)
 
-bomb_button = Button("Bomb", [60, 505, 60, 60], False, f"./assets/images/bomb.png", True)
-floating_tile_button = Button("Floating Tile", [140, 505, 60, 60], False, f"./assets/images/bomb.png", True)
-magnet_button = Button("Magnet", [60, 585, 60, 60], False, f"./assets/images/bomb.png", True)
-freeze_button = Button("Freeze", [140, 585, 60, 60], False, f"./assets/images/freeze.png", True)
+bomb_button = Button("Bomb", [60, 505, 72, 72], False, f"./assets/images/bomb-sprite.png", True)
+floating_tile_button = Button("Floating Tile", [140, 505, 72, 72], False, f"./assets/images/bomb.png", True)
+magnet_button = Button("Magnet", [60, 585, 72, 72], False, f"./assets/images/magnet-sprite.png", True)
+freeze_button = Button("Freeze", [140, 585, 72, 72], False, f"./assets/images/freeze.png", True)
 visible_tools = Button("Items Visible", [475, 570, 40, 40], True, "", True)
 
 set1_button = Button("1 Set", [275, 380, 40, 40], True, "1", True, small_font)
@@ -216,8 +216,11 @@ def run_menu():
             if isinstance(button.appearance, str):
                 if button.appearance[-3:] == "png":
                     sprite = pygame.image.load(button.appearance)
-                    sprite = pygame.transform.scale(sprite, (60, 60))
-                    window.blit(sprite, (button.location[0], button.location[1]))
+                    image = pygame.Surface((48, 48)).convert_alpha()
+                    image.fill(BUTTON_COL)
+                    image.blit(sprite, (0, 0), (0, 0, 48, 48))
+                    image = pygame.transform.scale(image, (72, 72))
+                    window.blit(image, (button.location[0], button.location[1]))
                 
                 elif button.is_slider:
                     pygame.draw.rect(window, (120, 52, 25), (button.location))
