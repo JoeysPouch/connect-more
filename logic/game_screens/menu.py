@@ -18,6 +18,7 @@ pygame.init()
 
 big_font = pygame.font.SysFont("arialblack", 35)
 small_font = pygame.font.SysFont("arialblack", 25)
+tiny_font = pygame.font.SysFont("arialblack", 15)
 TEXT_COL = (255, 255, 255)
 BUTTON_COL = (210, 105, 30)
 BACKGROUND_COLOUR = (244,164,96)
@@ -132,6 +133,27 @@ class Button:
             config_variables["square_size"] = min(500 / config_variables["row_count"], 1000 / config_variables["column_count"])
             config_variables["start_game"] = True
             print(config_variables)
+    
+
+class Info:
+    def __init__(self, x, y, width, height, text):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.text = text
+        self.rect = pygame.Rect(x - 10, y - 10, width, height)
+
+    def display(self):
+        pygame.draw.circle(window, (120, 52, 25), (self.x, self.y), 10)
+        pygame.draw.circle(window, TEXT_COL, (self.x, self.y - 5), 2)
+        pygame.draw.line(window, TEXT_COL, (self.x - 1, self.y - 1), (self.x - 1, self.y + 6), 2)
+
+    def on_hover(self):
+        x = self.x if self.x + self.width < SCREEN_WIDTH else self.x - self.width
+        y = self.y if self.y + self.height < SCREEN_HEIGHT else self.y - self.height
+        pygame.draw.rect(window, (120, 52, 25), (x, y, self.width, self.height))
+        draw_text(self.text, tiny_font, TEXT_COL, x + 10, y + 3)
 
 
 #Buttons
@@ -189,6 +211,9 @@ buttons = [
     start_button,
 ]
 
+test_info = Info(680, 355, 120, 60, "testing")
+infos = [test_info]
+
 def draw_text(text, font, text_col, x, y):
     img = font.render(text, True, text_col)
     window.blit(img, (x,y))
@@ -241,11 +266,16 @@ def run_menu():
         draw_text("Rules", big_font, TEXT_COL, 45, 280)
         draw_text("Connect", small_font, TEXT_COL, 45, 335)
         draw_text("Sets to Win", small_font, TEXT_COL, 275, 335)
-        draw_text("Bullet Mode", small_font, TEXT_COL, 520, 335)
+        draw_text("Bullet Mode", small_font, TEXT_COL, 500, 335)
         draw_text("Powerups", big_font, TEXT_COL, 45, 440)
         draw_text("Frequency", small_font, TEXT_COL, 300, 500)
         draw_text("Visibility", small_font, TEXT_COL, 325, 570)
 
+        for info in infos:
+            info.display()
+
+            if info.rect.collidepoint(pygame.mouse.get_pos()):
+                info.on_hover()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
