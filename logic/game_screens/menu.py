@@ -16,9 +16,13 @@ config_variables = {
 
 pygame.init()
 
-big_font = pygame.font.SysFont("arialblack", 35)
-small_font = pygame.font.SysFont("arialblack", 25)
-tiny_font = pygame.font.SysFont("arialblack", 15)
+big_font = pygame.font.Font("assets/other/pixel_game_font.otf", 50)
+small_font = pygame.font.Font("assets/other/pixel_game_font.otf", 35)
+tiny_font = pygame.font.Font("assets/other/pixel_game_font.otf", 20)
+
+#big_font = pygame.font.SysFont("arialblack", 35)
+#small_font = pygame.font.SysFont("arialblack", 25)
+#tiny_font = pygame.font.SysFont("arialblack", 15)
 TEXT_COL = (255, 255, 255)
 BUTTON_COL = (210, 105, 30)
 BACKGROUND_COLOUR = (244,164,96)
@@ -162,9 +166,9 @@ class Info:
 
 #Buttons
 
-title_button = Button("Title", [150, 15, 390, 70], True, "CONNECT MORE", False) # why are you a button?
+title_button = Button("Title", [150, 15, 390, 70], True, "      CONNECT MORE", False) # why are you a button?
 
-start_button = Button("Start", [260, 650, 200, 60], False, " START", False)
+start_button = Button("Start", [260, 650, 200, 60], False, "    START", False)
 
 bullet_mode = Button("Bullet Mode", [580, 380, 40, 40], False, "", True, small_font)
 
@@ -242,6 +246,7 @@ def run_menu():
         window.fill(BACKGROUND_COLOUR)
         for button in buttons:
             pygame.draw.rect(window, BUTTON_COL, button.location)
+            pygame.draw.rect(window, (120, 52, 25), (button.location[0] - 3, button.location[1] - 3, button.location[2] + 6, button.location[3] + 6), 3, 5)
             if isinstance(button.appearance, str):
                 if button.appearance[-3:] == "png":
                     sprite = pygame.image.load(button.appearance)
@@ -265,8 +270,8 @@ def run_menu():
                 
 
         draw_text("Board Size", big_font, TEXT_COL, 45, 105)
-        draw_text(f"Rows: {config_variables["row_count"]}", small_font, TEXT_COL, 110, 160)
-        draw_text(f"Columns: {config_variables["column_count"]}", small_font, TEXT_COL, 430, 160)
+        draw_text(f"Rows: {config_variables['row_count']}", small_font, TEXT_COL, 110, 160)
+        draw_text(f"Columns: {config_variables['column_count']}", small_font, TEXT_COL, 430, 160)
         draw_text("Rules", big_font, TEXT_COL, 45, 280)
         draw_text("Connect", small_font, TEXT_COL, 45, 335)
         draw_text("Sets to Win", small_font, TEXT_COL, 275, 335)

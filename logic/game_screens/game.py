@@ -11,6 +11,7 @@ from logic.components.tool import Tool
 from logic.components.animation import Animation
 from logic.game_screens.menu import config_variables
 
+
 def update_globals():
     global ROW_COUNT, COLUMN_COUNT, SQUARE_SIZE, ELIGIBLE_TOOLS, NUMBER_TO_WIN, SETS_TO_WIN, BULLET_MODE, TOOL_CHANCE, VISIBLE_TOOLS, START_GAME
     
@@ -185,7 +186,7 @@ class TurnManager:
                         
                         animations.append(
                             Animation(
-                                [pygame.transform.scale(pygame.image.load("./assets/images/magnet.png"), (SQUARE_SIZE, SQUARE_SIZE))],
+                                [pygame.transform.scale(pygame.image.load(f"./assets/images/disc_player_{self.current_player.id}.png"), (SQUARE_SIZE, SQUARE_SIZE))],
                                 fall_positions,
                                 False,
                                 True
