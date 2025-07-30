@@ -136,13 +136,13 @@ class Button:
     
 
 class Info:
-    def __init__(self, x, y, width, height, text):
+    def __init__(self, x, y, width, height, *text):
         self.x = x
         self.y = y
         self.width = width
         self.height = height
         self.text = text
-        self.rect = pygame.Rect(x - 10, y - 10, width, height)
+        self.rect = pygame.Rect(x - 10, y - 10, 20, 20)
 
     def display(self):
         pygame.draw.circle(window, (120, 52, 25), (self.x, self.y), 10)
@@ -150,10 +150,14 @@ class Info:
         pygame.draw.line(window, TEXT_COL, (self.x - 1, self.y - 1), (self.x - 1, self.y + 6), 2)
 
     def on_hover(self):
-        x = self.x if self.x + self.width < SCREEN_WIDTH else self.x - self.width
-        y = self.y if self.y + self.height < SCREEN_HEIGHT else self.y - self.height
+        x = self.x if self.x + self.width + 3 < SCREEN_WIDTH else self.x - self.width
+        y = self.y if self.y + self.height + 3 < SCREEN_HEIGHT else self.y - self.height
         pygame.draw.rect(window, (120, 52, 25), (x, y, self.width, self.height))
-        draw_text(self.text, tiny_font, TEXT_COL, x + 10, y + 3)
+        pygame.draw.rect(window, BUTTON_COL, (x - 3, y - 3, self.width + 6, self.height + 6), 3, 5)
+        buffer = 5
+        for line in self.text:
+            draw_text(line, tiny_font, TEXT_COL, x + 10, y + buffer)
+            buffer += 18
 
 
 #Buttons
@@ -211,7 +215,7 @@ buttons = [
     start_button,
 ]
 
-test_info = Info(680, 355, 120, 60, "testing")
+test_info = Info(680, 355, 160, 75, "Fast-paced mode", "with a 30 second", "chess clock!")
 infos = [test_info]
 
 def draw_text(text, font, text_col, x, y):
