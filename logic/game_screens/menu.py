@@ -219,8 +219,12 @@ buttons = [
     start_button,
 ]
 
-test_info = Info(680, 355, 160, 75, "Fast-paced mode", "with a 30 second", "chess clock!")
-infos = [test_info]
+test_info = Info(680, 351, 160, 75, "Fast-paced mode", "with a 30 second", "chess clock!")
+bomb_info = Info(120, 565, 160, 50, "Explode the other", "player's piece!")
+magnet_info = Info(120, 645, 180, 75, "Move the other" ,"player's piece and", "replace it with junk!")
+floating_info = Info(200, 565, 190, 50, "Place an anti-gravity", "floating tile!")
+ice_info = Info(200, 645, 140, 50, "Freeze a column", "for 3 turns!")
+infos = [test_info, bomb_info, magnet_info, floating_info, ice_info]
 
 def draw_text(text, font, text_col, x, y):
     img = font.render(text, True, text_col)
@@ -277,7 +281,7 @@ def run_menu():
         draw_text("Sets to Win", small_font, TEXT_COL, 275, 335)
         draw_text("Bullet Mode", small_font, TEXT_COL, 500, 335)
         draw_text("Powerups", big_font, TEXT_COL, 45, 440)
-        draw_text("Frequency", small_font, TEXT_COL, 300, 500)
+        draw_text("Frequency", small_font, TEXT_COL, 315, 500)
         draw_text("Visibility", small_font, TEXT_COL, 325, 570)
 
         for info in infos:
