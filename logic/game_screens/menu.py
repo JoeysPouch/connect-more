@@ -177,7 +177,7 @@ connect5_button = Button("Connect 5", [115, 380, 40, 40], False, "5", True, smal
 connect6_button = Button("Connect 6", [180, 380, 40, 40], False, "6", True, small_font)
 
 bomb_button = Button("Bomb", [60, 505, 72, 72], False, f"./assets/images/bomb-sprite.png", True)
-floating_tile_button = Button("Floating Tile", [140, 505, 72, 72], False, f"./assets/images/bomb.png", True)
+floating_tile_button = Button("Floating Tile", [140, 505, 72, 72], False, f"./assets/images/floating-tile-sprite.png", True)
 magnet_button = Button("Magnet", [60, 585, 72, 72], False, f"./assets/images/magnet-sprite.png", True)
 freeze_button = Button("Freeze", [140, 585, 72, 72], False, f"./assets/images/freeze-sprite.png", True)
 visible_tools = Button("Items Visible", [475, 570, 40, 40], True, "", True)
@@ -221,8 +221,8 @@ buttons = [
 
 test_info = Info(680, 351, 160, 75, "Fast-paced mode", "with a 30 second", "chess clock!")
 bomb_info = Info(120, 565, 160, 50, "Explode the other", "player's piece!")
-magnet_info = Info(120, 645, 180, 75, "Move the other" ,"player's piece and", "replace it with junk!")
-floating_info = Info(200, 565, 190, 50, "Place an anti-gravity", "floating tile!")
+magnet_info = Info(120, 645, 180, 65, "Move the other" ,"player's piece and", "replace it with junk!")
+floating_info = Info(200, 565, 190, 50, "Place a floating glass", "tile to catch pieces!")
 ice_info = Info(200, 645, 140, 50, "Freeze a column", "for 3 turns!")
 infos = [test_info, bomb_info, magnet_info, floating_info, ice_info]
 
