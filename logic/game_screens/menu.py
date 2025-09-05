@@ -16,6 +16,7 @@ config_variables = {
 
 pygame.init()
 
+giant_font = pygame.font.Font("assets/other/pixel_game_font.otf", 70)
 big_font = pygame.font.Font("assets/other/pixel_game_font.otf", 50)
 small_font = pygame.font.Font("assets/other/pixel_game_font.otf", 35)
 tiny_font = pygame.font.Font("assets/other/pixel_game_font.otf", 20)
@@ -35,7 +36,7 @@ window.fill(BACKGROUND_COLOUR)
 
 
 class Button:
-    def __init__(self, name, location, status, appearance, tickable, font=big_font):
+    def __init__(self, name, location, status, appearance, tickable, font=big_font, text_margin=(10,0)):
         self.name = name
         self.location = location
         self.status = status
@@ -44,6 +45,7 @@ class Button:
         self.dragging = False
         self.is_slider = appearance == "slider"
         self.font = font
+        self.text_margin = text_margin
 
     def slider(self, event, rows, columns):
         
@@ -166,9 +168,9 @@ class Info:
 
 #Buttons
 
-title_button = Button("Title", [150, 15, 390, 70], True, "      CONNECT MORE", False) # why are you a button?
+title_button = Button("Title", [165, 15, 390, 70], True, "C   NNECT M   RE", False, giant_font, (12, 5))
 
-start_button = Button("Start", [260, 650, 200, 60], False, "    START", False)
+start_button = Button("Start", [260, 650, 200, 60], False, "START", False)
 
 bullet_mode = Button("Bullet Mode", [580, 380, 40, 40], False, "", True, small_font)
 
@@ -176,10 +178,10 @@ connect4_button = Button("Connect 4", [50, 380, 40, 40], True, "4", True, small_
 connect5_button = Button("Connect 5", [115, 380, 40, 40], False, "5", True, small_font)
 connect6_button = Button("Connect 6", [180, 380, 40, 40], False, "6", True, small_font)
 
-bomb_button = Button("Bomb", [60, 505, 72, 72], False, f"./assets/images/bomb-sprite.png", True)
-floating_tile_button = Button("Floating Tile", [140, 505, 72, 72], False, f"./assets/images/floating-tile-sprite.png", True)
-magnet_button = Button("Magnet", [60, 585, 72, 72], False, f"./assets/images/magnet-sprite.png", True)
-freeze_button = Button("Freeze", [140, 585, 72, 72], False, f"./assets/images/freeze-sprite.png", True)
+bomb_button = Button("Bomb", [60, 505, 72, 72], False, "./assets/images/bomb-sprite.png", True)
+floating_tile_button = Button("Floating Tile", [140, 505, 72, 72], False, "./assets/images/floating-tile-sprite.png", True)
+magnet_button = Button("Magnet", [60, 585, 72, 72], False, "./assets/images/magnet-sprite.png", True)
+freeze_button = Button("Freeze", [140, 585, 72, 72], False, "./assets/images/freeze-sprite.png", True)
 visible_tools = Button("Items Visible", [475, 570, 40, 40], True, "", True)
 
 set1_button = Button("1 Set", [275, 380, 40, 40], True, "1", True, small_font)
@@ -230,6 +232,14 @@ def draw_text(text, font, text_col, x, y):
     img = font.render(text, True, text_col)
     window.blit(img, (x,y))
 
+def draw_image(image, fill_col, x, y, height, width, scale=1):
+    sprite = pygame.image.load(image)
+    image = pygame.Surface((width, height)).convert_alpha()
+    image.fill(fill_col)
+    image.blit(sprite, (0, 0), (0, 0, width, height))
+    image = pygame.transform.scale(image, (width*scale, height*scale))
+    window.blit(image, (x, y))
+
 def clicks(event):
     for button in buttons:
         rect = pygame.Rect(button.location)
@@ -253,17 +263,12 @@ def run_menu():
             pygame.draw.rect(window, (120, 52, 25), (button.location[0] - 3, button.location[1] - 3, button.location[2] + 6, button.location[3] + 6), 3, 5)
             if isinstance(button.appearance, str):
                 if button.appearance[-3:] == "png":
-                    sprite = pygame.image.load(button.appearance)
-                    image = pygame.Surface((48, 48)).convert_alpha()
-                    image.fill(BUTTON_COL)
-                    image.blit(sprite, (0, 0), (0, 0, 48, 48))
-                    image = pygame.transform.scale(image, (72, 72))
-                    window.blit(image, (button.location[0], button.location[1]))
+                    draw_image(button.appearance, BUTTON_COL, button.location[0], button.location[1], 48, 48, 1.5)
                 
                 elif button.is_slider:
                     pygame.draw.rect(window, (120, 52, 25), (button.location))
                 else:
-                    draw_text(button.appearance, button.font, TEXT_COL, button.location[0] + 10, button.location[1]+5)
+                    draw_text(button.appearance, button.font, TEXT_COL, button.location[0] + button.text_margin[0], button.location[1] + button.text_margin[1])
 
                 if button.status and button.tickable:
                     overlay = pygame.Surface((button.location[2], button.location[3]), pygame.SRCALPHA)
@@ -272,6 +277,12 @@ def run_menu():
                     pygame.draw.line(window, (0, 200, 0), (button.location[0], button.location[1] + button.location[3]/2), (button.location[0] + button.location[2]/3, button.location[1] + button.location[3]), 10)
                     pygame.draw.line(window, (0, 200, 0), (button.location[0] + button.location[2]/3, button.location[1] + button.location[3]), (button.location[0] + button.location[2], button.location[1]), 10)
                 
+        pygame.draw.circle(window, (255, 0, 0), (225, 52), 15)
+        pygame.draw.circle(window, (120, 52, 25), (225, 52), 15, 2)
+        pygame.draw.circle(window, (255, 255, 0), (469, 52), 15)
+        pygame.draw.circle(window, (120, 52, 25), (469, 52), 15, 2)
+        draw_image("./assets/images/disc_player_2.png", BACKGROUND_COLOUR, 30, 7, 48, 48, 2)
+        draw_image("./assets/images/disc_player_1.png", BACKGROUND_COLOUR, 590, 7, 48, 48, 2)
 
         draw_text("Board Size", big_font, TEXT_COL, 45, 105)
         draw_text(f"Rows: {config_variables['row_count']}", small_font, TEXT_COL, 110, 160)
