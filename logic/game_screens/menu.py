@@ -179,7 +179,7 @@ connect6_button = Button("Connect 6", [180, 380, 40, 40], False, "6", True, smal
 bomb_button = Button("Bomb", [60, 505, 72, 72], False, f"./assets/images/bomb-sprite.png", True)
 floating_tile_button = Button("Floating Tile", [140, 505, 72, 72], False, f"./assets/images/bomb.png", True)
 magnet_button = Button("Magnet", [60, 585, 72, 72], False, f"./assets/images/magnet-sprite.png", True)
-freeze_button = Button("Freeze", [140, 585, 72, 72], False, f"./assets/images/freeze.png", True)
+freeze_button = Button("Freeze", [140, 585, 72, 72], False, f"./assets/images/freeze-sprite.png", True)
 visible_tools = Button("Items Visible", [475, 570, 40, 40], True, "", True)
 
 set1_button = Button("1 Set", [275, 380, 40, 40], True, "1", True, small_font)
