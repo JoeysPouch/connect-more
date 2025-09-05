@@ -150,7 +150,7 @@ class Info:
 
     def display(self):
         pygame.draw.circle(window, (120, 52, 25), (self.x, self.y), 10)
-        pygame.draw.circle(window, TEXT_COL, (self.x, self.y - 5), 2)
+        pygame.draw.circle(window, TEXT_COL, (self.x, self.y - 5), 1.75)
         pygame.draw.line(window, TEXT_COL, (self.x - 1, self.y - 1), (self.x - 1, self.y + 6), 2)
 
     def on_hover(self):
@@ -287,6 +287,7 @@ def run_menu():
         for info in infos:
             info.display()
 
+        for info in infos:
             if info.rect.collidepoint(pygame.mouse.get_pos()):
                 info.on_hover()
 
