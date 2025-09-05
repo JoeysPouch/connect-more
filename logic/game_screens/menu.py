@@ -219,12 +219,12 @@ buttons = [
     start_button,
 ]
 
-test_info = Info(680, 351, 160, 75, "Fast-paced mode", "with a 30 second", "chess clock!")
-bomb_info = Info(120, 565, 160, 50, "Explode the other", "player's piece!")
+bullet_info = Info(680, 351, 160, 65, "Fast-paced mode", "with a 30 second", "chess clock!")
+bomb_info = Info(120, 565, 160, 45, "Explode the other", "player's piece!")
 magnet_info = Info(120, 645, 180, 65, "Move the other" ,"player's piece and", "replace it with junk!")
-floating_info = Info(200, 565, 190, 50, "Place a floating glass", "tile to catch pieces!")
-ice_info = Info(200, 645, 140, 50, "Freeze a column", "for 3 turns!")
-infos = [test_info, bomb_info, magnet_info, floating_info, ice_info]
+floating_info = Info(200, 565, 190, 45, "Place a floating glass", "tile to catch pieces!")
+freeze_info = Info(200, 645, 140, 45, "Freeze a column", "for 3 turns!")
+infos = [bullet_info, bomb_info, magnet_info, floating_info, freeze_info]
 
 def draw_text(text, font, text_col, x, y):
     img = font.render(text, True, text_col)
@@ -263,7 +263,7 @@ def run_menu():
                 elif button.is_slider:
                     pygame.draw.rect(window, (120, 52, 25), (button.location))
                 else:
-                    draw_text(button.appearance, button.font, TEXT_COL, button.location[0] + 10, button.location[1])
+                    draw_text(button.appearance, button.font, TEXT_COL, button.location[0] + 10, button.location[1]+5)
 
                 if button.status and button.tickable:
                     overlay = pygame.Surface((button.location[2], button.location[3]), pygame.SRCALPHA)
