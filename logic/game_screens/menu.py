@@ -36,7 +36,7 @@ window.fill(BACKGROUND_COLOUR)
 
 
 class Button:
-    def __init__(self, name, location, status, appearance, tickable, font=big_font, text_margin=(10,0)):
+    def __init__(self, name, location, status, appearance, tickable, font=big_font, text_margin=(12,5)):
         self.name = name
         self.location = location
         self.status = status
@@ -56,8 +56,8 @@ class Button:
         elif event.type == pygame.MOUSEMOTION and self.dragging:
             x = event.pos[0] - 15
             if self.name == "Row Slider":
-                self.location[0] = max(55, min(x, 245))
-                rows = int((self.location[0] - 10) / 7.5)
+                self.location[0] = max(75, min(x, 265))
+                rows = int((self.location[0] - 30) / 7.5)
             else:
                 self.location[0] = max(400, min(x, 590))
                 columns = int((self.location[0] - 355) / 7.5)
@@ -170,9 +170,9 @@ class Info:
 
 title_button = Button("Title", [165, 15, 390, 70], True, "C   NNECT M   RE", False, giant_font, (12, 5))
 
-start_button = Button("Start", [260, 650, 200, 60], False, "START", False)
+start_button = Button("Start", [260, 650, 200, 60], False, "START", False, text_margin=(45, 7))
 
-bullet_mode = Button("Bullet Mode", [580, 380, 40, 40], False, "", True, small_font)
+bullet_mode = Button("Bullet Mode", [565, 380, 40, 40], False, "", True, small_font)
 
 connect4_button = Button("Connect 4", [50, 380, 40, 40], True, "4", True, small_font)
 connect5_button = Button("Connect 5", [115, 380, 40, 40], False, "5", True, small_font)
@@ -184,17 +184,17 @@ magnet_button = Button("Magnet", [60, 585, 72, 72], False, "./assets/images/magn
 freeze_button = Button("Freeze", [140, 585, 72, 72], False, "./assets/images/freeze-sprite.png", True)
 visible_tools = Button("Items Visible", [475, 570, 40, 40], True, "", True)
 
-set1_button = Button("1 Set", [275, 380, 40, 40], True, "1", True, small_font)
-set2_button = Button("2 Sets", [340, 380, 40, 40], False, "2", True, small_font)
-set3_button = Button("3 Sets", [405, 380, 40, 40], False, "3", True, small_font)
+set1_button = Button("1 Set", [280, 380, 40, 40], True, "1", True, small_font)
+set2_button = Button("2 Sets", [345, 380, 40, 40], False, "2", True, small_font)
+set3_button = Button("3 Sets", [410, 380, 40, 40], False, "3", True, small_font)
 
 low_freq_button = Button("Low Frequency", [475, 500, 40, 40], False, "L", True, small_font)
-medium_freq_button = Button("Medium Frequency", [530, 500, 40, 40], False, "M", True, small_font)
+medium_freq_button = Button("Medium Frequency", [530, 500, 40, 40], False, "M", True, small_font, (10, 5))
 high_freq_button = Button("High Frequency", [585, 500, 40, 40], False, "H", True, small_font)
 
-rows_label = Button("Rows", [55, 220, 220, 30], True, None, False)
+rows_label = Button("Rows", [75, 220, 220, 30], True, None, False)
 columns_label = Button("Columns", [400, 220, 220, 30], True, None, False)
-row_slider = Button("Row Slider", [55, 210, 30, 50], False, "slider", False)
+row_slider = Button("Row Slider", [75, 210, 30, 50], False, "slider", False)
 column_slider = Button("Column Slider", [400, 210, 30, 50], False, "slider", False)
 
 buttons = [
@@ -285,11 +285,11 @@ def run_menu():
         draw_image("./assets/images/disc_player_1.png", BACKGROUND_COLOUR, 590, 7, 48, 48, 2)
 
         draw_text("Board Size", big_font, TEXT_COL, 45, 105)
-        draw_text(f"Rows: {config_variables['row_count']}", small_font, TEXT_COL, 110, 160)
-        draw_text(f"Columns: {config_variables['column_count']}", small_font, TEXT_COL, 430, 160)
+        draw_text(f"Rows: {config_variables['row_count']}", small_font, TEXT_COL, 135, 165)
+        draw_text(f"Columns: {config_variables['column_count']}", small_font, TEXT_COL, 440, 165)
         draw_text("Rules", big_font, TEXT_COL, 45, 280)
         draw_text("Connect", small_font, TEXT_COL, 45, 335)
-        draw_text("Sets to Win", small_font, TEXT_COL, 275, 335)
+        draw_text("Sets to Win", small_font, TEXT_COL, 280, 335)
         draw_text("Bullet Mode", small_font, TEXT_COL, 500, 335)
         draw_text("Powerups", big_font, TEXT_COL, 45, 440)
         draw_text("Frequency", small_font, TEXT_COL, 315, 500)
