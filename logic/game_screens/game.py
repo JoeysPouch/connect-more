@@ -91,8 +91,8 @@ class Game:
 
         # Initialises other classes
         self.game_board = Board()
-        self.player_1 = Player(1, "Player 1", (255, 0, 0), [Tool(0, 1.5, False, True, False, True, False)])
-        self.player_2 = Player(2, "Player 2", (255, 255, 0), [Tool(0, 1.5, False, True, False, True, False)])
+        self.player_1 = Player(1, "Player 1", (255, 0, 0), [Tool(0, 1.5, False, True, False, True, True)])
+        self.player_2 = Player(2, "Player 2", (255, 255, 0), [Tool(0, 1.5, False, True, False, True, True)])
         self.turn_manager = TurnManager(self.game_board, self.position, self.player_1, self.player_2, self.tool_locations)
         self.event_handler = EventHandler(self)
         self.renderer = Render(self.window, self.square_size, self.background_colour, self.player_1, self.player_2, self.tool_locations, size, self.game_board.board)
@@ -456,6 +456,8 @@ class Render:
         self.players = [player_1, player_2]
         self.tool_locations = tool_locations
         self.images = {
+            "0_1_mouse_sprite" : pygame.transform.scale(pygame.image.load("./assets/images/disc_player_1.png"), (SQUARE_SIZE, SQUARE_SIZE)),
+            "0_2_mouse_sprite" : pygame.transform.scale(pygame.image.load("./assets/images/disc_player_2.png"), (SQUARE_SIZE, SQUARE_SIZE)),
             "4_mouse_sprite" : pygame.transform.scale(pygame.image.load("./assets/images/magnet.png"), (SQUARE_SIZE * 0.8, SQUARE_SIZE * 0.8)),
             "5_mouse_sprite" : pygame.transform.scale(pygame.image.load("./assets/images/freeze.png"), (SQUARE_SIZE * 0.8, SQUARE_SIZE * 0.8))
         }
@@ -488,13 +490,18 @@ class Render:
         pygame.draw.rect(self.window, (0, 0, 255), (self.square_size, self.square_size, self.square_size * COLUMN_COUNT, self.square_size * ROW_COUNT))
         for c in range(COLUMN_COUNT):
             for r in range(ROW_COUNT):
+                current_tile_id = int(self.board[r][c])
                 disc_colour = self.get_colour(self.board[r][c])
                 if c in frozen_columns:
                     disc_colour = (disc_colour[0], disc_colour[1], min(255, disc_colour[2] + 150))
-                disc_pos = SQUARE_SIZE * (c + 1) + int(SQUARE_SIZE/2), SQUARE_SIZE * (r + 1) + int(SQUARE_SIZE/2)
-                pygame.draw.circle(self.window, disc_colour, disc_pos, int(SQUARE_SIZE / 2.5))
+                disc_pos_circle = SQUARE_SIZE * (c + 1) + int(SQUARE_SIZE/2), SQUARE_SIZE * (r + 1) + int(SQUARE_SIZE/2)
+                disc_pos = SQUARE_SIZE * (c + 1), SQUARE_SIZE * (r + 1)
+                if current_tile_id in (1,2):
+                    self.window.blit(pygame.transform.scale(pygame.image.load(f"./assets/images/disc_player_{current_tile_id}.png"), (SQUARE_SIZE, SQUARE_SIZE)), disc_pos)
+                else:
+                    pygame.draw.circle(self.window, disc_colour, disc_pos_circle, int(SQUARE_SIZE / 2.5))
                 if (c, ROW_COUNT - r - 1) in self.tool_locations and VISIBLE_TOOLS:
-                    pygame.draw.circle(self.window, "white", disc_pos, int(SQUARE_SIZE / 7.5))
+                    pygame.draw.circle(self.window, "white", disc_pos_circle, int(SQUARE_SIZE / 7.5))
 
     def draw_mouse_disc(self, turn, position, tool):      
         if tool.mouse_sprite == False:   
@@ -507,6 +514,8 @@ class Render:
         else:
             if tool.single_tile: 
                 self.window.blit(self.images[f"{tool.id}_mouse_sprite"], (position[0] - SQUARE_SIZE / 2, position[1] - SQUARE_SIZE / 2))
+            elif tool.id == 0:
+                self.window.blit(self.images[f"{tool.id}_{turn.id if tool.tile_id == 1.5 else tool.tile_id}_mouse_sprite"], (position[0] - SQUARE_SIZE / 2, SQUARE_SIZE / 10))
             else:
                 self.window.blit(self.images[f"{tool.id}_mouse_sprite"], (position[0] - SQUARE_SIZE / 2, SQUARE_SIZE / 10))
 
