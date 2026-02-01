@@ -73,14 +73,20 @@ class Button:
 
         # Connect 4/5/6 select
         if self.name == "Connect 4":
+            if not all([self.status, connect5_button.status, connect4_button.status]):
+                self.status = True
             config_variables["number_to_win"] = 4
             connect5_button.status = False
             connect6_button.status = False
         if self.name == "Connect 5":
+            if not all([self.status, connect4_button.status, connect6_button.status]):
+                self.status = True
             config_variables["number_to_win"] = 5
             connect4_button.status = False
             connect6_button.status = False       
         if self.name == "Connect 6":
+            if not all([self.status, connect4_button.status, connect5_button.status]):
+                self.status = True
             config_variables["number_to_win"] = 6
             connect4_button.status = False
             connect5_button.status = False
@@ -109,14 +115,20 @@ class Button:
             
         # Lines to win select
         if self.name == "1 Set":
+            if not all([set1_button.status, set2_button.status, set3_button.status]):
+                self.status = True
             config_variables["sets_to_win"] = 1
             set2_button.status = False
             set3_button.status = False
         if self.name == "2 Sets":
+            if not all([set1_button.status, set2_button.status, set3_button.status]):
+                self.status = True
             config_variables["sets_to_win"] = 2
             set1_button.status = False
             set3_button.status = False
         if self.name == "3 Sets":
+            if not all([set1_button.status, set2_button.status, set3_button.status]):
+                self.status = True
             config_variables["sets_to_win"] = 3
             set1_button.status = False
             set2_button.status = False
@@ -263,6 +275,7 @@ def clicks(event):
         if rect.collidepoint(event.pos[0], event.pos[1]):
             button.action_from_click()
             print(button.name)
+            print(config_variables["sets_to_win"])
 
 def run_menu():
     pygame.mixer.music.load(f'./assets/sound/menu_music.wav')
