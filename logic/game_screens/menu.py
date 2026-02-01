@@ -118,17 +118,26 @@ class Button:
             set1_button.status = False
             set2_button.status = False
         if self.name == "Low Frequency":
-            config_variables["tool_chance"] = 0.1
-            medium_freq_button.status = False
-            high_freq_button.status = False
+            if self.status:
+                config_variables["tool_chance"] = 0.1
+                medium_freq_button.status = False
+                high_freq_button.status = False
+            else:
+                config_variables["tool_chance"] = 0
         if self.name == "Medium Frequency":
-            config_variables["tool_chance"] = 0.15
-            low_freq_button.status = False
-            high_freq_button.status = False
+            if self.status:
+                config_variables["tool_chance"] = 0.15
+                low_freq_button.status = False
+                high_freq_button.status = False
+            else:
+                config_variables["tool_chance"] = 0
         if self.name == "High Frequency":
-            config_variables["tool_chance"] = 0.20
-            low_freq_button.status = False
-            medium_freq_button.status = False
+            if self.status:
+                config_variables["tool_chance"] = 0.20
+                low_freq_button.status = False
+                medium_freq_button.status = False
+            else:
+                config_variables["tool_chance"] = 0
         if self.name == "Bullet Mode":
             config_variables["bullet_mode"] = not config_variables["bullet_mode"]
         if self.name == "Items Visible":
@@ -244,7 +253,7 @@ def clicks(event):
         rect = pygame.Rect(button.location)
         if rect.collidepoint(event.pos[0], event.pos[1]):
             button.action_from_click()
-            print(button.name)
+            # print(button.name)
 
 def run_menu():
     pygame.mixer.music.load(f'./assets/sound/menu_music.wav')
@@ -282,10 +291,7 @@ def run_menu():
                 else:
                     overlay = pygame.Surface((button.location[2], button.location[3]), pygame.SRCALPHA)
                     overlay.fill((0, 0, 0, 70))
-                    window.blit(overlay, (button.location[0], button.location[1]))
-
-
-                    
+                    window.blit(overlay, (button.location[0], button.location[1]))            
                 
         pygame.draw.circle(window, (255, 0, 0), (225, 52), 15)
         pygame.draw.circle(window, (120, 52, 25), (225, 52), 15, 2)
