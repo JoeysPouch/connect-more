@@ -23,7 +23,7 @@ def update_globals():
     NUMBER_TO_WIN = cfg["number_to_win"]
     SETS_TO_WIN = cfg["sets_to_win"]
     BULLET_MODE = cfg["bullet_mode"]
-    TOOL_CHANCE = cfg["tool_chance"]
+    TOOL_CHANCE = cfg["tool_chance"]#
     VISIBLE_TOOLS = cfg["visible_tools"]
     START_GAME = cfg["start_game"]
 
@@ -40,7 +40,7 @@ class Game:
         screen_height = self.square_size * (ROW_COUNT + 1) + 100
         screen_width = self.square_size * (COLUMN_COUNT + 2)
         size = (screen_width, screen_height)
-        self.background_colour = (69,255,69)
+        self.background_colour = (0, 192, 0)
         self.window = pygame.display.set_mode(size)
         self.position = (screen_width / 2, screen_height / 2)
         self.pieces = 0
@@ -467,6 +467,8 @@ class Render:
     def render(self, board, turn, position, tool, frozen_columns, game_over):
         animation_frames = self.get_animation_frames()
         self.draw_board(board, frozen_columns)
+        pygame.draw.rect(self.window, (210, 105, 30), (3, SQUARE_SIZE * (ROW_COUNT + 1), SQUARE_SIZE * (COLUMN_COUNT + 2), 0.75 * SQUARE_SIZE))
+        pygame.draw.rect(self.window, (120, 52, 25), (0, SQUARE_SIZE * (ROW_COUNT + 1) - 3, SQUARE_SIZE * (COLUMN_COUNT + 2), 0.75 * SQUARE_SIZE + 6), 3, 5)
         for frame in animation_frames:
             self.window.blit(frame[0], frame[1])
         if not self.paused and not game_over:
@@ -482,6 +484,7 @@ class Render:
         self.window.fill(self.background_colour)
         if not self.paused:
             self.board = deepcopy(board)
+        pygame.draw.rect(self.window, (0, 0, 120), (self.square_size - 3, self.square_size - 3, self.square_size * COLUMN_COUNT + 6, self.square_size * ROW_COUNT + 6), 3, 5)
         pygame.draw.rect(self.window, (0, 0, 255), (self.square_size, self.square_size, self.square_size * COLUMN_COUNT, self.square_size * ROW_COUNT))
         for c in range(COLUMN_COUNT):
             for r in range(ROW_COUNT):
@@ -508,7 +511,7 @@ class Render:
                 self.window.blit(self.images[f"{tool.id}_mouse_sprite"], (position[0] - SQUARE_SIZE / 2, SQUARE_SIZE / 10))
 
     def draw_timer(self, player):
-        font = pygame.font.SysFont("arialblack", 20)
+        font = pygame.font.Font("assets/other/pixel_game_font.otf", 35)
         number_text = font.render(f"Player {player.id}: 0:{player.time:02}", True, (255, 255, 255))
         self.window.blit(number_text, (10, 30 * player.id + (self.size[1] - 100)))
 
@@ -526,21 +529,22 @@ class Render:
         return animation_frames
 
     def winner(self, players):
-        pygame.draw.rect(self.window, (255, 255, 255), (self.size[0] / 2 - 150, self.size[1] / 2 - 100, 300, 200))
-        font = pygame.font.SysFont("arialblack", 30)
+        pygame.draw.rect(self.window, (255, 255, 255), (self.size[0] / 2 - 155, self.size[1] / 2 - 80, 300, 200))
+        pygame.draw.rect(self.window, (0, 0, 51), (self.size[0] / 2 - 158, self.size[1] / 2 - 83, 306, 206), 3, 5)
+        font = pygame.font.Font("assets/other/pixel_game_font.otf", 35)
         message_displayed = False
-        menu_message = font.render(f"Press Enter to return to menu", True, (255, 100, 255))
+        menu_message = font.render(f"Press Enter to Return", True, (255, 100, 255))
         for player in players:
             if player.won:
-                winner_message_1 = font.render(f"Congats your when", True, (255, 100, 255))
-                winner_player = font.render(f"player  {player.id}", True, (255, 100, 255))
+                winner_message_1 = font.render(f"Game Over!", True, (255, 100, 255))
+                winner_player = font.render(f"Player {player.id} has won", True, (255, 100, 255))
                 self.window.blit(winner_message_1, (self.size[0] / 2 - 150, self.size[1] / 2 - 50, 300, 200))
                 self.window.blit(winner_player, (self.size[0] / 2 - 150, self.size[1] / 2, 300, 200))
                 self.window.blit(menu_message, (self.size[0] / 2 - 150, self.size[1] / 2 + 50, 300, 200))
                 message_displayed = True
         if not message_displayed:
-            tie_message = font.render(f"draw :|", True, (255, 100, 255))
-            self.window.blit(tie_message, (self.size[0] / 2 - 150, self.size[1] / 2 - 100, 300, 200))
+            tie_message = font.render(f"This game is a draw!", True, (255, 100, 255))
+            self.window.blit(tie_message, (self.size[0] / 2 - 150, self.size[1] / 2 - 50, 300, 200))
             self.window.blit(menu_message, (self.size[0] / 2 - 150, self.size[1] / 2, 300, 200))
 
 
