@@ -16,6 +16,7 @@ def update_globals():
     global ROW_COUNT, COLUMN_COUNT, SQUARE_SIZE, ELIGIBLE_TOOLS, NUMBER_TO_WIN, SETS_TO_WIN, BULLET_MODE, TOOL_CHANCE, VISIBLE_TOOLS, START_GAME
     
     cfg = config_variables
+    print(cfg["row_count"], config_variables["row_count"])
     ROW_COUNT = cfg["row_count"]
     COLUMN_COUNT = cfg["column_count"]
     SQUARE_SIZE = cfg["square_size"]
@@ -90,7 +91,7 @@ class Game:
             self.active_layers = set('layer_1')
 
         # Initialises other classes
-        self.game_board = Board()
+        self.game_board = Board(ROW_COUNT, COLUMN_COUNT)
         self.player_1 = Player(1, "Player 1", (255, 0, 0), [Tool(0, 1.5, False, True, False, True, True)])
         self.player_2 = Player(2, "Player 2", (255, 255, 0), [Tool(0, 1.5, False, True, False, True, True)])
         self.turn_manager = TurnManager(self.game_board, self.position, self.player_1, self.player_2, self.tool_locations)
