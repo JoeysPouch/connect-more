@@ -468,11 +468,20 @@ class Render:
 
     def render(self, board, turn, position, tool, frozen_columns, game_over):
         animation_frames = self.get_animation_frames()
-        self.draw_board(board, frozen_columns)
+
+        self.window.fill(self.background_colour)
+        pygame.draw.rect(self.window, (0, 0, 255), (self.square_size, self.square_size, self.square_size * COLUMN_COUNT, self.square_size * ROW_COUNT))
+
         pygame.draw.rect(self.window, (210, 105, 30), (3, SQUARE_SIZE * (ROW_COUNT + 1), SQUARE_SIZE * (COLUMN_COUNT + 2), 0.75 * SQUARE_SIZE))
         pygame.draw.rect(self.window, (120, 52, 25), (0, SQUARE_SIZE * (ROW_COUNT + 1) - 3, SQUARE_SIZE * (COLUMN_COUNT + 2), 0.75 * SQUARE_SIZE + 6), 3, 5)
+
+        self.draw_pieces(board, frozen_columns)
+
         for frame in animation_frames:
             self.window.blit(frame[0], frame[1])
+
+        self.draw_board()
+        
         if not self.paused and not game_over:
             self.draw_mouse_disc(turn, position, tool)
         if BULLET_MODE:
@@ -482,12 +491,17 @@ class Render:
             self.winner(self.players)
         self.final_render()
 
-    def draw_board(self, board, frozen_columns):
-        self.window.fill(self.background_colour)
+    def draw_board(self):
+        pygame.draw.rect(self.window, (0, 0, 120), (self.square_size - 3, self.square_size - 3, self.square_size * COLUMN_COUNT + 6, self.square_size * ROW_COUNT + 6), 3, 5)
+        board_piece = pygame.transform.scale(pygame.image.load(f"./assets/images/board-tile.png"), (SQUARE_SIZE, SQUARE_SIZE))
+        for c in range(COLUMN_COUNT):
+            for r in range(ROW_COUNT):
+                self.window.blit(board_piece, (SQUARE_SIZE * (c + 1), SQUARE_SIZE * (r + 1)))
+
+    def draw_pieces(self, board, frozen_columns):
         if not self.paused:
             self.board = deepcopy(board)
         pygame.draw.rect(self.window, (0, 0, 120), (self.square_size - 3, self.square_size - 3, self.square_size * COLUMN_COUNT + 6, self.square_size * ROW_COUNT + 6), 3, 5)
-        pygame.draw.rect(self.window, (0, 0, 255), (self.square_size, self.square_size, self.square_size * COLUMN_COUNT, self.square_size * ROW_COUNT))
         for c in range(COLUMN_COUNT):
             for r in range(ROW_COUNT):
                 current_tile_id = int(self.board[r][c])
