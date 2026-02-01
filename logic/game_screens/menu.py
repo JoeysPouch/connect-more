@@ -269,12 +269,22 @@ def run_menu():
             if button.type == "slider":
                 pygame.draw.rect(window, (120, 52, 25), (button.location))
 
-            if button.status and button.type == "on_off":
-                overlay = pygame.Surface((button.location[2], button.location[3]), pygame.SRCALPHA)
-                overlay.fill((0, 0, 0, 70))
-                window.blit(overlay, (button.location[0], button.location[1]))
-                pygame.draw.rect(window, TEXT_COL, (button.location[0]+button.location[2]/4, button.location[1]+button.location[3]/4,
-                                                        button.location[2]/2, button.location[3]/2), border_radius=2)
+            if button.type == "on_off":
+                if button.status:
+                    overlay = pygame.Surface((button.location[2], button.location[3]), pygame.SRCALPHA)
+                    overlay.fill((0, 0, 0, 70))
+                    window.blit(overlay, (button.location[0], button.location[1]))
+                    pygame.draw.rect(window, TEXT_COL, (button.location[0]+button.location[2]/4, button.location[1]+button.location[3]/4,
+                                                            button.location[2]/2, button.location[3]/2), border_radius=2)
+            if button.type == "option":
+                if button.status:
+                    pygame.draw.rect(window, TEXT_COL, (button.location[0] - 3, button.location[1] - 3, button.location[2] + 6, button.location[3] + 6), 4, 5)
+                else:
+                    overlay = pygame.Surface((button.location[2], button.location[3]), pygame.SRCALPHA)
+                    overlay.fill((0, 0, 0, 70))
+                    window.blit(overlay, (button.location[0], button.location[1]))
+
+
                     
                 
         pygame.draw.circle(window, (255, 0, 0), (225, 52), 15)
