@@ -16,7 +16,6 @@ def update_globals():
     global ROW_COUNT, COLUMN_COUNT, SQUARE_SIZE, ELIGIBLE_TOOLS, NUMBER_TO_WIN, SETS_TO_WIN, BULLET_MODE, TOOL_CHANCE, VISIBLE_TOOLS, START_GAME
     
     cfg = config_variables
-    print(cfg["row_count"], config_variables["row_count"])
     ROW_COUNT = cfg["row_count"]
     COLUMN_COUNT = cfg["column_count"]
     SQUARE_SIZE = cfg["square_size"]
@@ -24,7 +23,7 @@ def update_globals():
     NUMBER_TO_WIN = cfg["number_to_win"]
     SETS_TO_WIN = cfg["sets_to_win"]
     BULLET_MODE = cfg["bullet_mode"]
-    TOOL_CHANCE = cfg["tool_chance"]#
+    TOOL_CHANCE = cfg["tool_chance"]
     VISIBLE_TOOLS = cfg["visible_tools"]
     START_GAME = cfg["start_game"]
 
@@ -111,7 +110,7 @@ class Game:
                 if self.turn_manager.current_player.time == 0:
                     self.turn_manager.other_player.won = True
                     self.turn_manager.game_over = True
-            self.renderer.render(self.game_board.board, self.turn_manager.current_player, self.position, self.turn_manager.current_player.tools[self.turn_manager.tool_index], self.game_board.frozen_columns, self.turn_manager.game_over)
+            self.renderer.render(self.game_board.board, self.turn_manager.tool_locations, self.turn_manager.current_player, self.position, self.turn_manager.current_player.tools[self.turn_manager.tool_index], self.game_board.frozen_columns, self.turn_manager.game_over)
 
 
 class TurnManager:
@@ -467,7 +466,7 @@ class Render:
         self.board = board
         self.paused = False
 
-    def render(self, board, turn, position, tool, frozen_columns, game_over):
+    def render(self, board, tool_locations, turn, position, tool, frozen_columns, game_over):
         animation_frames = self.get_animation_frames()
 
         self.window.fill(self.background_colour)
@@ -476,7 +475,7 @@ class Render:
         pygame.draw.rect(self.window, (210, 105, 30), (3, SQUARE_SIZE * (ROW_COUNT + 1), SQUARE_SIZE * (COLUMN_COUNT + 2), 0.75 * SQUARE_SIZE))
         pygame.draw.rect(self.window, (120, 52, 25), (0, SQUARE_SIZE * (ROW_COUNT + 1) - 3, SQUARE_SIZE * (COLUMN_COUNT + 2), 0.75 * SQUARE_SIZE + 6), 3, 5)
 
-        self.draw_pieces(board, frozen_columns)
+        self.draw_pieces(board, tool_locations, frozen_columns)
 
         for frame in animation_frames:
             self.window.blit(frame[0], frame[1])
@@ -485,11 +484,14 @@ class Render:
         
         if not self.paused and not game_over:
             self.draw_mouse_disc(turn, position, tool)
+            
         if BULLET_MODE:
             self.draw_timer(self.players[0])
             self.draw_timer(self.players[1])
+
         if game_over:
             self.winner(self.players)
+
         self.final_render()
 
     def draw_board(self):
@@ -499,9 +501,10 @@ class Render:
             for r in range(ROW_COUNT):
                 self.window.blit(board_piece, (SQUARE_SIZE * (c + 1), SQUARE_SIZE * (r + 1)))
 
-    def draw_pieces(self, board, frozen_columns):
+    def draw_pieces(self, board, tool_locations, frozen_columns):
         if not self.paused:
             self.board = deepcopy(board)
+            self.tool_locations = deepcopy(tool_locations)
         pygame.draw.rect(self.window, (0, 0, 120), (self.square_size - 3, self.square_size - 3, self.square_size * COLUMN_COUNT + 6, self.square_size * ROW_COUNT + 6), 3, 5)
         for c in range(COLUMN_COUNT):
             for r in range(ROW_COUNT):

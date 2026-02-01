@@ -1,10 +1,4 @@
 import numpy as np
-# import sys
-# sys.path.append(".")
-# from logic.game_screens.game import ROW_COUNT, COLUMN_COUNT
-
-# ROW_COUNT = config_variables["row_count"]
-# COLUMN_COUNT = config_variables["column_count"]
 
 class Board:
     def __init__(self, r, c):
