@@ -9,6 +9,7 @@ from logic.components.board import Board
 from logic.components.sounds import Sounds
 from logic.components.tool import Tool
 from logic.components.animation import Animation
+from logic.components.spritesheet import SpriteSheet
 from logic.game_screens.menu import config_variables
 
 
@@ -60,7 +61,7 @@ class Game:
                         if tool_to_add == 1:
                             self.tool_locations[(col, row)] = Tool(1, 4, True, False, False, True, False)
                         elif tool_to_add == 2:
-                            self.tool_locations[(col, row)] = Tool(2, 3, True, True, True, False, False)
+                            self.tool_locations[(col, row)] = Tool(2, 3, True, True, True, False, True)
                         elif tool_to_add == 3:
                             self.tool_locations[(col, row)] = Tool(3, 1.5, True, True, True, True, False)
                         elif tool_to_add == 4:
@@ -190,6 +191,16 @@ class TurnManager:
                                 fall_positions,
                                 False,
                                 True
+                            )
+                        )
+                    elif current_tool.id == 2:
+                        animations.append(
+                            Animation(
+                                "bomb/0/8",
+                                [(position[0], ROW_COUNT - position[1] - 1)],
+                                False,
+                                True,
+                                4
                             )
                         )
                     elif current_tool.id == 5:
@@ -455,9 +466,14 @@ class Render:
         self.background_colour = background_colour
         self.players = [player_1, player_2]
         self.tool_locations = tool_locations
+        self.spritesheets = {
+            "bomb": SpriteSheet(pygame.image.load("./assets/images/bomb-sprite.png"), "#464646"),
+            "magnet": SpriteSheet(pygame.image.load("./assets/images/magnet-sprite.png"), "white")
+        }
         self.images = {
             "0_1_mouse_sprite" : pygame.transform.scale(pygame.image.load("./assets/images/disc_player_1.png"), (SQUARE_SIZE, SQUARE_SIZE)),
             "0_2_mouse_sprite" : pygame.transform.scale(pygame.image.load("./assets/images/disc_player_2.png"), (SQUARE_SIZE, SQUARE_SIZE)),
+            "2_mouse_sprite": self.spritesheets["bomb"].get_image(0, 48, 48, SQUARE_SIZE/48),
             "4_mouse_sprite" : pygame.transform.scale(pygame.image.load("./assets/images/magnet.png"), (SQUARE_SIZE * 0.8, SQUARE_SIZE * 0.8)),
             "5_mouse_sprite" : pygame.transform.scale(pygame.image.load("./assets/images/freeze.png"), (SQUARE_SIZE * 0.8, SQUARE_SIZE * 0.8))
         }
@@ -545,9 +561,23 @@ class Render:
     def get_animation_frames(self):
         animation_frames = []
         for animation in self.animations:
+            if type(animation.frames) == str:
+                frames_list = animation.frames.split("/")
+                self.animations.append(
+                                    Animation(
+                                        [self.spritesheets[frames_list[0]].get_image(i, 48, 48, SQUARE_SIZE/48) for i in range(int(frames_list[1]), int(frames_list[2]))],
+                                        animation.positions,
+                                        animation.looping,
+                                        animation.pause_game,
+                                        animation.delay
+                                    )
+                                )
+                self.animations.remove(animation)
+                continue
+
             sprite, pos = animation.get_frame_and_pos()
             if animation.complete and animation.pause_game:
-                del animation
+                self.animations.remove(animation)
                 self.paused = False
             else:
                 animation_frames.append((sprite, ((pos[0] + 1) * SQUARE_SIZE,  (pos[1] + 1) * SQUARE_SIZE)))
