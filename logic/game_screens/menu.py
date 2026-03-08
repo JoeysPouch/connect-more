@@ -21,9 +21,6 @@ big_font = pygame.font.Font("assets/other/pixel_game_font.otf", 50)
 small_font = pygame.font.Font("assets/other/pixel_game_font.otf", 35)
 tiny_font = pygame.font.Font("assets/other/pixel_game_font.otf", 20)
 
-#big_font = pygame.font.SysFont("arialblack", 35)
-#small_font = pygame.font.SysFont("arialblack", 25)
-#tiny_font = pygame.font.SysFont("arialblack", 15)
 TEXT_COL = (255, 255, 255)
 BUTTON_COL = (210, 105, 30)
 BACKGROUND_COLOUR = (244,164,96)
@@ -275,7 +272,6 @@ def clicks(event):
         if rect.collidepoint(event.pos[0], event.pos[1]):
             button.action_from_click()
             print(button.name)
-            print(config_variables["sets_to_win"])
 
 def run_menu():
     pygame.mixer.music.load(f'./assets/sound/menu_music.wav')
@@ -308,7 +304,7 @@ def run_menu():
             if button.type == "toggle":
                 if button.status:
                     overlay = pygame.Surface((button.location[2], button.location[3]), pygame.SRCALPHA)
-                    overlay.fill((0, 0, 0, 70))
+                    # overlay.fill((0, 0, 0, 70))
                     window.blit(overlay, (button.location[0], button.location[1]))
                     pygame.draw.rect(window, TEXT_COL, (button.location[0]+button.location[2]/4, button.location[1]+button.location[3]/4,
                                                             button.location[2]/2, button.location[3]/2), border_radius=2)
