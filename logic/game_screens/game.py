@@ -162,8 +162,15 @@ class TurnManager:
                                 position = (position[0], position[1] - 1)
                                 if current_tool.id == 4:
                                     held_tile_id = self.game_board.board[position[1]][position[0]]
+                        
+                        if current_tool.tile_id == 1.5:
+                            new_tile_id = self.current_player.id
+                        elif current_tool.id == 2:
+                            new_tile_id = int(self.game_board.board[position[1]][position[0]]) + 0.1
+                        else:
+                            new_tile_id = current_tool.tile_id
                                     
-                        self.game_board.position_change(position, self.current_player.id if current_tool.tile_id == 1.5 else current_tool.tile_id)
+                        self.game_board.position_change(position, new_tile_id)
                         if position in self.tool_locations:
                             self.current_player.tools.append(self.tool_locations[position])
                             del self.tool_locations[position]
@@ -200,7 +207,8 @@ class TurnManager:
                                 [(position[0], ROW_COUNT - position[1] - 1)],
                                 False,
                                 True,
-                                4
+                                4,
+                                6
                             )
                         )
                     elif current_tool.id == 5:
@@ -468,7 +476,9 @@ class Render:
         self.tool_locations = tool_locations
         self.spritesheets = {
             "bomb": SpriteSheet(pygame.image.load("./assets/images/bomb-sprite.png"), "#464646"),
-            "magnet": SpriteSheet(pygame.image.load("./assets/images/magnet-sprite.png"), "white")
+            "magnet": SpriteSheet(pygame.image.load("./assets/images/magnet-sprite.png"), "white"),
+            "player_1": SpriteSheet(pygame.image.load("./assets/images/red-disc.png"), "white"),
+            "player_2": SpriteSheet(pygame.image.load("./assets/images/yellow-disc.png"), "white")
         }
         self.images = {
             "0_1_mouse_sprite" : pygame.transform.scale(pygame.image.load("./assets/images/disc_player_1.png"), (SQUARE_SIZE, SQUARE_SIZE)),
@@ -525,13 +535,16 @@ class Render:
         for c in range(COLUMN_COUNT):
             for r in range(ROW_COUNT):
                 current_tile_id = int(self.board[r][c])
+                bombed = True if self.board[r][c] > current_tile_id + 0.08 else False
                 disc_colour = self.get_colour(self.board[r][c])
                 if c in frozen_columns:
                     disc_colour = (disc_colour[0], disc_colour[1], min(255, disc_colour[2] + 150))
                 disc_pos_circle = SQUARE_SIZE * (c + 1) + int(SQUARE_SIZE/2), SQUARE_SIZE * (r + 1) + int(SQUARE_SIZE/2)
                 disc_pos = SQUARE_SIZE * (c + 1), SQUARE_SIZE * (r + 1)
                 if current_tile_id in (1,2):
-                    self.window.blit(pygame.transform.scale(pygame.image.load(f"./assets/images/disc_player_{current_tile_id}.png"), (SQUARE_SIZE, SQUARE_SIZE)), disc_pos)
+                    if bombed:
+                        pygame.draw.circle(self.window, self.background_colour, disc_pos_circle, int(SQUARE_SIZE / 2.5))
+                    self.window.blit(self.spritesheets[f"player_{int(current_tile_id)}"].get_image(1 if bombed else 0, 48, 48, SQUARE_SIZE/48), disc_pos)
                 else:
                     pygame.draw.circle(self.window, disc_colour, disc_pos_circle, int(SQUARE_SIZE / 2.5))
                 if (c, ROW_COUNT - r - 1) in self.tool_locations and VISIBLE_TOOLS:
@@ -561,6 +574,9 @@ class Render:
     def get_animation_frames(self):
         animation_frames = []
         for animation in self.animations:
+            if animation.pause_game:
+                self.paused = True
+
             if type(animation.frames) == str:
                 frames_list = animation.frames.split("/")
                 self.animations.append(
@@ -569,20 +585,19 @@ class Render:
                                         animation.positions,
                                         animation.looping,
                                         animation.pause_game,
-                                        animation.delay
+                                        animation.delay,
+                                        animation.unpause_frame
                                     )
                                 )
                 self.animations.remove(animation)
                 continue
 
             sprite, pos = animation.get_frame_and_pos()
-            if animation.complete and animation.pause_game:
+            if (animation.complete or animation.unpause_frame == -1) and animation.pause_game:
                 self.animations.remove(animation)
                 self.paused = False
             else:
                 animation_frames.append((sprite, ((pos[0] + 1) * SQUARE_SIZE,  (pos[1] + 1) * SQUARE_SIZE)))
-                if animation.pause_game:
-                    self.paused = True
         return animation_frames
 
     def winner(self, players):
