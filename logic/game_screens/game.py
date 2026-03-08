@@ -4,6 +4,7 @@ import sys
 import random
 from copy import deepcopy
 sys.path.append(".")
+from logic.components import player
 from logic.components.player import Player
 from logic.components.board import Board
 from logic.components.sounds import Sounds
@@ -23,7 +24,7 @@ def update_globals():
     NUMBER_TO_WIN = cfg["number_to_win"]
     SETS_TO_WIN = cfg["sets_to_win"]
     BULLET_MODE = cfg["bullet_mode"]
-    TOOL_CHANCE = cfg["tool_chance"]#
+    TOOL_CHANCE = cfg["tool_chance"]
     VISIBLE_TOOLS = cfg["visible_tools"]
     START_GAME = cfg["start_game"]
 
@@ -456,8 +457,11 @@ class Render:
         self.players = [player_1, player_2]
         self.tool_locations = tool_locations
         self.images = {
-            "4_mouse_sprite" : pygame.transform.scale(pygame.image.load("./assets/images/magnet.png"), (SQUARE_SIZE * 0.8, SQUARE_SIZE * 0.8)),
-            "5_mouse_sprite" : pygame.transform.scale(pygame.image.load("./assets/images/freeze.png"), (SQUARE_SIZE * 0.8, SQUARE_SIZE * 0.8))
+            "2_mouse_sprite" : pygame.transform.scale(pygame.image.load("./assets/images/bomb-sprite.png"), (SQUARE_SIZE * 0.8, SQUARE_SIZE * 0.8)),
+            "3_mouse_sprite" : pygame.transform.scale(pygame.image.load("./assets/images/floating-tile-sprite.png"), (SQUARE_SIZE * 0.8, SQUARE_SIZE * 0.8)),
+            "4_mouse_sprite" : pygame.transform.scale(pygame.image.load("./assets/images/magnet-sprite.png"), (SQUARE_SIZE * 0.8, SQUARE_SIZE * 0.8)),
+            "5_mouse_sprite" : pygame.transform.scale(pygame.image.load("./assets/images/freeze-sprite.png"), (SQUARE_SIZE * 0.8, SQUARE_SIZE * 0.8)),
+
         }
         self.size = size
         self.animations = []
@@ -467,8 +471,18 @@ class Render:
     def render(self, board, turn, position, tool, frozen_columns, game_over):
         animation_frames = self.get_animation_frames()
         self.draw_board(board, frozen_columns)
-        pygame.draw.rect(self.window, (210, 105, 30), (3, SQUARE_SIZE * (ROW_COUNT + 1), SQUARE_SIZE * (COLUMN_COUNT + 2), 0.75 * SQUARE_SIZE))
-        pygame.draw.rect(self.window, (120, 52, 25), (0, SQUARE_SIZE * (ROW_COUNT + 1) - 3, SQUARE_SIZE * (COLUMN_COUNT + 2), 0.75 * SQUARE_SIZE + 6), 3, 5)
+        #Tables
+        pygame.draw.rect(self.window, (210, 105, 30), (3, SQUARE_SIZE * (ROW_COUNT + 1), SQUARE_SIZE * (COLUMN_COUNT + 2), 1.15 * SQUARE_SIZE))
+        pygame.draw.rect(self.window, (120, 52, 25), (0, SQUARE_SIZE * (ROW_COUNT + 1) - 3, SQUARE_SIZE * (COLUMN_COUNT + 2), 1.15 * SQUARE_SIZE + 6), 3, 5)
+        #Powerup UI
+        for i in range(4):
+            self.window.blit(self.images[f"{i+2}_mouse_sprite"], (SQUARE_SIZE * i, SQUARE_SIZE * (ROW_COUNT + 1)))
+            font = pygame.font.Font("assets/other/pixel_game_font.otf", 35 - COLUMN_COUNT)
+            self.window.blit(font.render(f"{len([tool for tool in self.players[0].tools if tool.id == i + 2])}", True, (255, 255, 255)), (SQUARE_SIZE * (i + 0.5), SQUARE_SIZE * (ROW_COUNT + 1.75)))
+        for i in range(COLUMN_COUNT - 2, COLUMN_COUNT + 2):
+            self.window.blit(self.images[f"{i + 4 - COLUMN_COUNT}_mouse_sprite"], (SQUARE_SIZE * i, SQUARE_SIZE * (ROW_COUNT + 1)))
+            font = pygame.font.Font("assets/other/pixel_game_font.otf", 35 - COLUMN_COUNT)
+            self.window.blit(font.render(f"{len([tool for tool in self.players[1].tools if tool.id == i + 4 - COLUMN_COUNT])}", True, (255, 255, 255)), (SQUARE_SIZE * (i + 0.5), SQUARE_SIZE * (ROW_COUNT + 1.75)))
         for frame in animation_frames:
             self.window.blit(frame[0], frame[1])
         if not self.paused and not game_over:
