@@ -1,5 +1,5 @@
 class Animation:
-    def __init__(self, frames, positions, looping, pause_game, delay = 1, unpause_frame = None, pause_board = True):
+    def __init__(self, frames, positions, looping, pause_game, delay = 1, unpause_frame = None, pause_board = True, freeze = False):
         self.frames = frames
         self.positions = positions
         self.looping = looping
@@ -11,6 +11,7 @@ class Animation:
         self.complete = False
         self.unpause_frame = unpause_frame 
         self.pause_board = pause_board
+        self.freeze = freeze
 
     def get_frame_and_pos(self):
         self.num_frames += 1
