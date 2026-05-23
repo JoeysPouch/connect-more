@@ -1,14 +1,25 @@
 class Animation:
-    def __init__(self, frames, positions, looping, pause_game):
+    def __init__(self, frames, positions, looping, pause_game, delay = 1, unpause_frame = None, pause_board = True, freeze = False):
         self.frames = frames
         self.positions = positions
         self.looping = looping
         self.pause_game = pause_game
+        self.delay = delay
         self.current_frame = -1
         self.current_position = -1
+        self.num_frames = -1
         self.complete = False
+        self.unpause_frame = unpause_frame 
+        self.pause_board = pause_board
+        self.freeze = freeze
 
     def get_frame_and_pos(self):
+        self.num_frames += 1
+        if self.num_frames % self.delay != 0:
+            return self.frames[self.current_frame], self.positions[self.current_position]
+        
+        if self.unpause_frame is not None and self.current_frame >= self.unpause_frame:
+            self.unpause_frame = -1
         if self.current_frame + 1 < len(self.frames):
             self.current_frame += 1
         elif len(self.frames) >= len(self.positions):

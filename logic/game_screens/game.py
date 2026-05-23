@@ -10,6 +10,7 @@ from logic.components.board import Board
 from logic.components.sounds import Sounds
 from logic.components.tool import Tool
 from logic.components.animation import Animation
+from logic.components.spritesheet import SpriteSheet
 from logic.game_screens.menu import config_variables
 
 
@@ -61,7 +62,7 @@ class Game:
                         if tool_to_add == 1:
                             self.tool_locations[(col, row)] = Tool(1, 4, True, False, False, True, False)
                         elif tool_to_add == 2:
-                            self.tool_locations[(col, row)] = Tool(2, 3, True, True, True, False, False)
+                            self.tool_locations[(col, row)] = Tool(2, 3, True, True, True, False, True)
                         elif tool_to_add == 3:
                             self.tool_locations[(col, row)] = Tool(3, 1.5, True, True, True, True, False)
                         elif tool_to_add == 4:
@@ -91,9 +92,9 @@ class Game:
             self.active_layers = set('layer_1')
 
         # Initialises other classes
-        self.game_board = Board()
-        self.player_1 = Player(1, "Player 1", (255, 0, 0), [Tool(0, 1.5, False, True, False, True, False)])
-        self.player_2 = Player(2, "Player 2", (255, 255, 0), [Tool(0, 1.5, False, True, False, True, False)])
+        self.game_board = Board(ROW_COUNT, COLUMN_COUNT)
+        self.player_1 = Player(1, "Player 1", (255, 0, 0), [Tool(0, 1.5, False, True, False, True, True)])
+        self.player_2 = Player(2, "Player 2", (255, 255, 0), [Tool(0, 1.5, False, True, False, True, True)])
         self.turn_manager = TurnManager(self.game_board, self.position, self.player_1, self.player_2, self.tool_locations)
         self.event_handler = EventHandler(self)
         self.renderer = Render(self.window, self.square_size, self.background_colour, self.player_1, self.player_2, self.tool_locations, size, self.game_board.board)
@@ -111,7 +112,7 @@ class Game:
                 if self.turn_manager.current_player.time == 0:
                     self.turn_manager.other_player.won = True
                     self.turn_manager.game_over = True
-            self.renderer.render(self.game_board.board, self.turn_manager.current_player, self.position, self.turn_manager.current_player.tools[self.turn_manager.tool_index], self.game_board.frozen_columns, self.turn_manager.game_over)
+            self.renderer.render(self.game_board.board, self.turn_manager.tool_locations, self.turn_manager.current_player, self.position, self.turn_manager.current_player.tools[self.turn_manager.tool_index], self.game_board.frozen_columns, self.turn_manager.game_over)
 
 
 class TurnManager:
@@ -141,7 +142,7 @@ class TurnManager:
                         self.current_player.time -= 1
                         self.current_player.time = max(0, self.current_player.time)
 
-    def player_turn(self, animations):
+    def player_turn(self, animations, spritesheets):
         if not self.game_over:
             if self.attempt:
                 self.first_move_made = True
@@ -162,8 +163,15 @@ class TurnManager:
                                 position = (position[0], position[1] - 1)
                                 if current_tool.id == 4:
                                     held_tile_id = self.game_board.board[position[1]][position[0]]
+                        
+                        if current_tool.tile_id == 1.5:
+                            new_tile_id = self.current_player.id
+                        elif current_tool.id == 2:
+                            new_tile_id = int(self.game_board.board[position[1]][position[0]]) + 0.1
+                        else:
+                            new_tile_id = current_tool.tile_id
                                     
-                        self.game_board.position_change(position, self.current_player.id if current_tool.tile_id == 1.5 else current_tool.tile_id)
+                        self.game_board.position_change(position, new_tile_id)
                         if position in self.tool_locations:
                             self.current_player.tools.append(self.tool_locations[position])
                             del self.tool_locations[position]
@@ -185,26 +193,139 @@ class TurnManager:
                             d = d + v / 60 + 50 / 7200
                             v = v + 50 / 60
                         
+                        if current_tool.tile_id == 1.5:
+                            animations.append(
+                                Animation(
+                                    [spritesheets[f"player_{self.current_player.id}"].get_image(0, 48, 48, SQUARE_SIZE/48)],
+                                    fall_positions,
+                                    False,
+                                    True
+                                )
+                            )
+                        elif current_tool.tile_id in (1,2):
+                            animations.append(
+                                Animation(
+                                    [spritesheets[f"player_{current_tool.tile_id}"].get_image(0, 48, 48, SQUARE_SIZE/48)],
+                                    fall_positions,
+                                    False,
+                                    True
+                                )
+                            )
+                        elif current_tool.tile_id in (1.1,2.1):
+                            animations.append(
+                                Animation(
+                                    [spritesheets[f"player_{int(current_tool.tile_id)}"].get_image(1, 48, 48, SQUARE_SIZE/48)],
+                                    fall_positions,
+                                    False,
+                                    True
+                                )
+                            )
+                        elif current_tool.tile_id == 3:
+                            animations.append(
+                                Animation(
+                                    [spritesheets["magnet"].get_image(1, 48, 48, SQUARE_SIZE/60)],
+                                    [[x + 0.1, y + 0.1] for x,y in fall_positions],
+                                    False,
+                                    True
+                                )
+                            )
+                        elif current_tool.tile_id == 3.1:
+                            animations.append(
+                                Animation(
+                                    [spritesheets["magnet"].get_image(1, 48, 48, SQUARE_SIZE/60, "black")],
+                                    [[x + 0.1, y + 0.1] for x,y in fall_positions],
+                                    False,
+                                    True
+                                )
+                            )
+                        else:
+                            animations.append(
+                                Animation(
+                                    [spritesheets["bomb"].get_image(0, 48, 48, SQUARE_SIZE/60)],
+                                    fall_positions,
+                                    False,
+                                    True
+                                )
+                            )
+                    elif current_tool.id == 2:
                         animations.append(
                             Animation(
-                                [pygame.transform.scale(pygame.image.load(f"./assets/images/disc_player_{self.current_player.id}.png"), (SQUARE_SIZE, SQUARE_SIZE))],
-                                fall_positions,
+                                "bomb/0/8/1",
+                                [(position[0], ROW_COUNT - position[1] - 1)],
                                 False,
-                                True
+                                True,
+                                4,
+                                6
                             )
                         )
+                    elif current_tool.id == 4:
+                        d = ROW_COUNT - position[1] - 1
+                        v = 10
+                        rise_positions = []
+
+                        while d > -1:
+                            rise_positions.append((position[0], d))
+                            d = d - (v / 60 + 50 / 7200)
+                            v = v + 50 / 60
+
+                        if held_tile_id == 1:
+                            held_tile_sprite = spritesheets["player_1"].get_image(0, 48, 48, SQUARE_SIZE/48)
+                        elif held_tile_id == 1.1:
+                            held_tile_sprite = spritesheets["player_1"].get_image(1, 48, 48, SQUARE_SIZE/48)
+                        elif held_tile_id == 2:
+                            held_tile_sprite = spritesheets["player_2"].get_image(0, 48, 48, SQUARE_SIZE/48)
+                        elif held_tile_id == 2.1:
+                            held_tile_sprite = spritesheets["player_2"].get_image(1, 48, 48, SQUARE_SIZE/48)
+                        elif held_tile_id == 3:
+                            held_tile_sprite = spritesheets["magnet"].get_image(1, 48, 48, SQUARE_SIZE/60)
+                            rise_positions = [[x + 0.1, y + 0.1] for x,y in rise_positions]
+                        elif held_tile_id == 3.1:
+                            held_tile_sprite = spritesheets["magnet"].get_image(1, 48, 48, SQUARE_SIZE/60, "black")
+                            rise_positions = [[x + 0.1, y + 0.1] for x,y in rise_positions]
+                        else:
+                            held_tile_sprite = spritesheets["bomb"].get_image(0, 48, 48, SQUARE_SIZE/60)
+                            rise_positions = [[x + 0.1, y + 0.1] for x,y in rise_positions]
+
+                        animations.append(
+                            Animation(
+                                [held_tile_sprite],
+                                rise_positions,
+                                False,
+                                True,
+                                pause_board = False
+                            )
+                        )
+
+                        animations.append(
+                            Animation(
+                                "magnet/3/6/0.8",
+                                [(position[0] + 0.1, -0.9)],
+                                False,
+                                False,
+                                int(len(rise_positions) / 3)
+                            )
+                        )
+
                     elif current_tool.id == 5:
-                        self.game_board.frozen_columns[self.selection[0]] = 3
-                        for i in range(ROW_COUNT):
-                            if self.game_board.board[i][self.selection[0]] not in (0, 4):
-                                animations.append(
-                                    Animation(
-                                        [pygame.transform.scale(pygame.image.load("./assets/images/freeze.png"), (SQUARE_SIZE, SQUARE_SIZE))],
-                                        [(self.selection[0], i)] * 5,
-                                        False,
-                                        True
-                                    )
-                                )
+                        self.game_board.frozen_columns[self.selection[0]] = [3, -1]
+                        d = -1
+                        v = 10
+                        fall_positions = []
+
+                        while d < ROW_COUNT - 1:
+                            fall_positions.append((self.selection[0], d))
+                            d = d + v / 60 + 50 / 7200
+                            v = v + 50 / 60
+
+                        animations.append(
+                            Animation(
+                                [spritesheets["freeze"].get_image(0, 48, 48, SQUARE_SIZE/48)],
+                                fall_positions,
+                                False,
+                                True,
+                                freeze=True
+                            )
+                        )
 
                     if current_tool.single_use:
                         del self.current_player.tools[self.tool_index] 
@@ -212,7 +333,7 @@ class TurnManager:
                     self.tool_index = 0
 
                     if current_tool.id == 4:
-                        self.current_player.tools = [Tool(0, held_tile_id, True, False, False, True, False), Tool(0, 3, True, True,  False, True, False)] + self.current_player.tools
+                        self.current_player.tools = [Tool(0, held_tile_id if int(held_tile_id) != held_tile_id else int(held_tile_id), True, False, False, True, True), Tool(0, 3, True, True,  False, True, True)] + self.current_player.tools
     
                     if current_tool.tile_id in (1, 1.5, 2):
                         if current_tool.tile_id == self.other_player.id:
@@ -372,8 +493,8 @@ class TurnManager:
         self.number_of_turns += 1
 
         for x in list(self.game_board.frozen_columns.keys()):
-            self.game_board.frozen_columns[x] -= 1
-            if self.game_board.frozen_columns[x] <= 0:
+            self.game_board.frozen_columns[x][0] -= 1
+            if self.game_board.frozen_columns[x][0] <= 0:
                 del self.game_board.frozen_columns[x]
 
         if NUMBER_TO_WIN > 4:
@@ -412,7 +533,7 @@ class EventHandler:
         if not self.game.turn_manager.game_over and not self.game.renderer.paused:
             self.game.turn_manager.attempt = True
             self.game.turn_manager.selection = (int(self.game.position[0] / self.game.square_size) - 1, int(self.game.position[1] / self.game.square_size) - 1)
-            self.game.turn_manager.player_turn(self.game.renderer.animations)
+            self.game.turn_manager.player_turn(self.game.renderer.animations, self.game.renderer.spritesheets)
             if not BULLET_MODE:
                 self.game.audio['piece'].start()
                 self.music()
@@ -456,24 +577,43 @@ class Render:
         self.background_colour = background_colour
         self.players = [player_1, player_2]
         self.tool_locations = tool_locations
+        self.spritesheets = {
+            "bomb": SpriteSheet(pygame.image.load("./assets/images/bomb-sprite.png"), "white"),
+            "glass": SpriteSheet(pygame.image.load("./assets/images/floating-tile-sprite.png"), "white"),
+            "magnet": SpriteSheet(pygame.image.load("./assets/images/magnet-sprite.png"), "white"),
+            "freeze": SpriteSheet(pygame.image.load("./assets/images/freeze-sprite.png"), "white"),
+            "player_1": SpriteSheet(pygame.image.load("./assets/images/red-disc.png"), "white"),
+            "player_2": SpriteSheet(pygame.image.load("./assets/images/yellow-disc.png"), "white")
+        }
         self.images = {
-            "2_mouse_sprite" : pygame.transform.scale(pygame.image.load("./assets/images/bomb-sprite.png"), (SQUARE_SIZE * 0.8, SQUARE_SIZE * 0.8)),
+            "0_1_mouse_sprite" : self.spritesheets["player_1"].get_image(0, 48, 48, SQUARE_SIZE/48),
+            "0_2_mouse_sprite" : self.spritesheets["player_2"].get_image(0, 48, 48, SQUARE_SIZE/48),
+            "0_3_mouse_sprite" : self.spritesheets["magnet"].get_image(1, 48, 48, SQUARE_SIZE/60),
+            "0_1.0_mouse_sprite" : self.spritesheets["player_1"].get_image(0, 48, 48, SQUARE_SIZE/48),
+            "0_2.0_mouse_sprite" : self.spritesheets["player_2"].get_image(0, 48, 48, SQUARE_SIZE/48),
+            "0_1.1_mouse_sprite" : self.spritesheets["player_1"].get_image(1, 48, 48, SQUARE_SIZE/48),
+            "0_2.1_mouse_sprite" : self.spritesheets["player_2"].get_image(1, 48, 48, SQUARE_SIZE/48),
+            "0_3.1_mouse_sprite" : self.spritesheets["magnet"].get_image(1, 48, 48, SQUARE_SIZE/60, "black"),
+            "2_mouse_sprite": self.spritesheets["bomb"].get_image(0, 48, 48, SQUARE_SIZE/48),
             "3_mouse_sprite" : pygame.transform.scale(pygame.image.load("./assets/images/floating-tile-sprite.png"), (SQUARE_SIZE * 0.8, SQUARE_SIZE * 0.8)),
-            "4_mouse_sprite" : pygame.transform.scale(pygame.image.load("./assets/images/magnet-sprite.png"), (SQUARE_SIZE * 0.8, SQUARE_SIZE * 0.8)),
-            "5_mouse_sprite" : pygame.transform.scale(pygame.image.load("./assets/images/freeze-sprite.png"), (SQUARE_SIZE * 0.8, SQUARE_SIZE * 0.8)),
-
+            "4_mouse_sprite" : self.spritesheets["magnet"].get_image(2, 48, 48, SQUARE_SIZE/60),
+            "5_mouse_sprite" : self.spritesheets["freeze"].get_image(0, 48, 48, SQUARE_SIZE/60)
         }
         self.size = size
         self.animations = []
         self.board = board
         self.paused = False
+        self.board_paused = False
 
-    def render(self, board, turn, position, tool, frozen_columns, game_over):
-        animation_frames = self.get_animation_frames()
-        self.draw_board(board, frozen_columns)
+    def render(self, board, tool_locations, turn, position, tool, frozen_columns, game_over):
+        animation_frames = self.get_animation_frames(frozen_columns)
+
+        self.window.fill(self.background_colour)
+        pygame.draw.rect(self.window, (0, 0, 255), (self.square_size, self.square_size, self.square_size * COLUMN_COUNT, self.square_size * ROW_COUNT))
+
         #Tables
-        pygame.draw.rect(self.window, (210, 105, 30), (3, SQUARE_SIZE * (ROW_COUNT + 1), SQUARE_SIZE * (COLUMN_COUNT + 2), 1.15 * SQUARE_SIZE))
-        pygame.draw.rect(self.window, (120, 52, 25), (0, SQUARE_SIZE * (ROW_COUNT + 1) - 3, SQUARE_SIZE * (COLUMN_COUNT + 2), 1.15 * SQUARE_SIZE + 6), 3, 5)
+        pygame.draw.rect(self.window, (210, 105, 30), (3, SQUARE_SIZE * (ROW_COUNT + 1), SQUARE_SIZE * (COLUMN_COUNT + 2), 0.75 * SQUARE_SIZE))
+        pygame.draw.rect(self.window, (120, 52, 25), (0, SQUARE_SIZE * (ROW_COUNT + 1) - 3, SQUARE_SIZE * (COLUMN_COUNT + 2), 0.75 * SQUARE_SIZE + 6), 3, 5)
         #Powerup UI
         for i in range(4):
             self.window.blit(self.images[f"{i+2}_mouse_sprite"], (SQUARE_SIZE * i, SQUARE_SIZE * (ROW_COUNT + 1)))
@@ -483,32 +623,68 @@ class Render:
             self.window.blit(self.images[f"{i + 4 - COLUMN_COUNT}_mouse_sprite"], (SQUARE_SIZE * i, SQUARE_SIZE * (ROW_COUNT + 1)))
             font = pygame.font.Font("assets/other/pixel_game_font.otf", 35 - COLUMN_COUNT)
             self.window.blit(font.render(f"{len([tool for tool in self.players[1].tools if tool.id == i + 4 - COLUMN_COUNT])}", True, (255, 255, 255)), (SQUARE_SIZE * (i + 0.5), SQUARE_SIZE * (ROW_COUNT + 1.75)))
+
+        self.draw_pieces(board, tool_locations, frozen_columns)
+
         for frame in animation_frames:
             self.window.blit(frame[0], frame[1])
+
+        self.draw_board(frozen_columns)
+        
         if not self.paused and not game_over:
             self.draw_mouse_disc(turn, position, tool)
+            
         if BULLET_MODE:
             self.draw_timer(self.players[0])
             self.draw_timer(self.players[1])
+
         if game_over:
             self.winner(self.players)
+
         self.final_render()
 
-    def draw_board(self, board, frozen_columns):
-        self.window.fill(self.background_colour)
-        if not self.paused:
-            self.board = deepcopy(board)
+    def draw_board(self, frozen_columns):
         pygame.draw.rect(self.window, (0, 0, 120), (self.square_size - 3, self.square_size - 3, self.square_size * COLUMN_COUNT + 6, self.square_size * ROW_COUNT + 6), 3, 5)
-        pygame.draw.rect(self.window, (0, 0, 255), (self.square_size, self.square_size, self.square_size * COLUMN_COUNT, self.square_size * ROW_COUNT))
+        board_piece = pygame.transform.scale(pygame.image.load(f"./assets/images/board-tile.png"), (SQUARE_SIZE, SQUARE_SIZE))
+        for c in range(COLUMN_COUNT):
+            if c in frozen_columns and frozen_columns[c][1] > 0:
+                freeze_surface = pygame.Surface((SQUARE_SIZE, SQUARE_SIZE * frozen_columns[c][1]))  
+                freeze_surface.set_alpha(64)               
+                freeze_surface.fill((0,190,220))          
+                self.window.blit(freeze_surface, (SQUARE_SIZE * (c + 1), SQUARE_SIZE))
+            for r in range(ROW_COUNT):
+                self.window.blit(board_piece, (SQUARE_SIZE * (c + 1), SQUARE_SIZE * (r + 1)))
+
+    def draw_pieces(self, board, tool_locations, frozen_columns):
+        if not self.board_paused:
+            self.board = deepcopy(board)
+            self.tool_locations = deepcopy(tool_locations)
+        pygame.draw.rect(self.window, (0, 0, 120), (self.square_size - 3, self.square_size - 3, self.square_size * COLUMN_COUNT + 6, self.square_size * ROW_COUNT + 6), 3, 5)
         for c in range(COLUMN_COUNT):
             for r in range(ROW_COUNT):
+                current_tile_id = int(self.board[r][c])
+                bombed = True if self.board[r][c] == current_tile_id + 0.1 else False
                 disc_colour = self.get_colour(self.board[r][c])
-                if c in frozen_columns:
+                background_colour = self.background_colour
+                if c in frozen_columns and r < frozen_columns[c][1]:
                     disc_colour = (disc_colour[0], disc_colour[1], min(255, disc_colour[2] + 150))
-                disc_pos = SQUARE_SIZE * (c + 1) + int(SQUARE_SIZE/2), SQUARE_SIZE * (r + 1) + int(SQUARE_SIZE/2)
-                pygame.draw.circle(self.window, disc_colour, disc_pos, int(SQUARE_SIZE / 2.5))
+                    background_colour = (self.background_colour[0], self.background_colour[1], min(255, self.background_colour[2] + 150))
+                disc_pos_circle = SQUARE_SIZE * (c + 1) + int(SQUARE_SIZE/2), SQUARE_SIZE * (r + 1) + int(SQUARE_SIZE/2)
+                if current_tile_id == 3:
+                    disc_pos = SQUARE_SIZE * (c + 1.1), SQUARE_SIZE * (r + 1.1)
+                else:
+                    disc_pos = SQUARE_SIZE * (c + 1), SQUARE_SIZE * (r + 1)
+                if current_tile_id in (1,2):
+                    if bombed:
+                        pygame.draw.circle(self.window, background_colour, disc_pos_circle, int(SQUARE_SIZE / 2.5))
+                    self.window.blit(self.spritesheets[f"player_{int(current_tile_id)}"].get_image(1 if bombed else 0, 48, 48, SQUARE_SIZE/48, None), disc_pos)
+                elif current_tile_id == 3:
+                    pygame.draw.circle(self.window, background_colour, disc_pos_circle, int(SQUARE_SIZE / 2.5))
+                    self.window.blit(self.spritesheets["magnet"].get_image(1, 48, 48, SQUARE_SIZE/60, "black" if bombed else None), disc_pos)
+                elif current_tile_id == 0:
+                    pygame.draw.circle(self.window, background_colour, disc_pos_circle, int(SQUARE_SIZE / 2.5))
                 if (c, ROW_COUNT - r - 1) in self.tool_locations and VISIBLE_TOOLS:
-                    pygame.draw.circle(self.window, "white", disc_pos, int(SQUARE_SIZE / 7.5))
+                    pygame.draw.circle(self.window, "white", disc_pos_circle, int(SQUARE_SIZE / 7.5))
 
     def draw_mouse_disc(self, turn, position, tool):      
         if tool.mouse_sprite == False:   
@@ -521,6 +697,8 @@ class Render:
         else:
             if tool.single_tile: 
                 self.window.blit(self.images[f"{tool.id}_mouse_sprite"], (position[0] - SQUARE_SIZE / 2, position[1] - SQUARE_SIZE / 2))
+            elif tool.id == 0:
+                self.window.blit(self.images[f"{tool.id}_{turn.id if tool.tile_id == 1.5 else tool.tile_id}_mouse_sprite"], (position[0] - SQUARE_SIZE / 2, SQUARE_SIZE / 10))
             else:
                 self.window.blit(self.images[f"{tool.id}_mouse_sprite"], (position[0] - SQUARE_SIZE / 2, SQUARE_SIZE / 10))
 
@@ -529,17 +707,42 @@ class Render:
         number_text = font.render(f"Player {player.id}: 0:{player.time:02}", True, (255, 255, 255))
         self.window.blit(number_text, (10, 30 * player.id + (self.size[1] - 100)))
 
-    def get_animation_frames(self):
+    def get_animation_frames(self, frozen_columns):
         animation_frames = []
         for animation in self.animations:
+            if animation.pause_game:
+                self.paused = True
+                if animation.pause_board:
+                    self.board_paused = True
+
+            if type(animation.frames) == str:
+                frames_list = animation.frames.split("/")
+                self.animations.append(
+                                    Animation(
+                                        [self.spritesheets[frames_list[0]].get_image(i, 48, 48, float(frames_list[3]) * SQUARE_SIZE/48) for i in range(int(frames_list[1]), int(frames_list[2]))],
+                                        animation.positions,
+                                        animation.looping,
+                                        animation.pause_game,
+                                        animation.delay,
+                                        animation.unpause_frame
+                                    )
+                                )
+                self.animations.remove(animation)
+                continue
+
             sprite, pos = animation.get_frame_and_pos()
-            if animation.complete and animation.pause_game:
-                del animation
+            if animation.freeze:
+                frozen_columns[pos[0]][1] = int(pos[1])
+            if (animation.complete or animation.unpause_frame == -1) and animation.pause_game:
+                self.animations.remove(animation)
                 self.paused = False
+                self.board_paused = False
+                if animation.freeze:
+                    frozen_columns[pos[0]][1] = ROW_COUNT
+            elif animation.complete:
+                self.animations.remove(animation)
             else:
                 animation_frames.append((sprite, ((pos[0] + 1) * SQUARE_SIZE,  (pos[1] + 1) * SQUARE_SIZE)))
-                if animation.pause_game:
-                    self.paused = True
         return animation_frames
 
     def winner(self, players):
