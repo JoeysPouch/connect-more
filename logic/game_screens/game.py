@@ -4,6 +4,7 @@ import sys
 import random
 from copy import deepcopy
 sys.path.append(".")
+from logic.components import player
 from logic.components.player import Player
 from logic.components.board import Board
 from logic.components.sounds import Sounds
@@ -594,6 +595,7 @@ class Render:
             "0_2.1_mouse_sprite" : self.spritesheets["player_2"].get_image(1, 48, 48, SQUARE_SIZE/48),
             "0_3.1_mouse_sprite" : self.spritesheets["magnet"].get_image(1, 48, 48, SQUARE_SIZE/60, "black"),
             "2_mouse_sprite": self.spritesheets["bomb"].get_image(0, 48, 48, SQUARE_SIZE/48),
+            "3_mouse_sprite" : pygame.transform.scale(pygame.image.load("./assets/images/floating-tile-sprite.png"), (SQUARE_SIZE * 0.8, SQUARE_SIZE * 0.8)),
             "4_mouse_sprite" : self.spritesheets["magnet"].get_image(2, 48, 48, SQUARE_SIZE/60),
             "5_mouse_sprite" : self.spritesheets["freeze"].get_image(0, 48, 48, SQUARE_SIZE/60)
         }
@@ -609,8 +611,18 @@ class Render:
         self.window.fill(self.background_colour)
         pygame.draw.rect(self.window, (0, 0, 255), (self.square_size, self.square_size, self.square_size * COLUMN_COUNT, self.square_size * ROW_COUNT))
 
+        #Tables
         pygame.draw.rect(self.window, (210, 105, 30), (3, SQUARE_SIZE * (ROW_COUNT + 1), SQUARE_SIZE * (COLUMN_COUNT + 2), 0.75 * SQUARE_SIZE))
         pygame.draw.rect(self.window, (120, 52, 25), (0, SQUARE_SIZE * (ROW_COUNT + 1) - 3, SQUARE_SIZE * (COLUMN_COUNT + 2), 0.75 * SQUARE_SIZE + 6), 3, 5)
+        #Powerup UI
+        for i in range(4):
+            self.window.blit(self.images[f"{i+2}_mouse_sprite"], (SQUARE_SIZE * i, SQUARE_SIZE * (ROW_COUNT + 1)))
+            font = pygame.font.Font("assets/other/pixel_game_font.otf", 35 - COLUMN_COUNT)
+            self.window.blit(font.render(f"{len([tool for tool in self.players[0].tools if tool.id == i + 2])}", True, (255, 255, 255)), (SQUARE_SIZE * (i + 0.5), SQUARE_SIZE * (ROW_COUNT + 1.75)))
+        for i in range(COLUMN_COUNT - 2, COLUMN_COUNT + 2):
+            self.window.blit(self.images[f"{i + 4 - COLUMN_COUNT}_mouse_sprite"], (SQUARE_SIZE * i, SQUARE_SIZE * (ROW_COUNT + 1)))
+            font = pygame.font.Font("assets/other/pixel_game_font.otf", 35 - COLUMN_COUNT)
+            self.window.blit(font.render(f"{len([tool for tool in self.players[1].tools if tool.id == i + 4 - COLUMN_COUNT])}", True, (255, 255, 255)), (SQUARE_SIZE * (i + 0.5), SQUARE_SIZE * (ROW_COUNT + 1.75)))
 
         self.draw_pieces(board, tool_locations, frozen_columns)
 
