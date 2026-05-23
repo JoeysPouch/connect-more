@@ -64,7 +64,7 @@ class Game:
                         elif tool_to_add == 2:
                             self.tool_locations[(col, row)] = Tool(2, 3, True, True, True, False, True)
                         elif tool_to_add == 3:
-                            self.tool_locations[(col, row)] = Tool(3, 1.5, True, True, True, True, False)
+                            self.tool_locations[(col, row)] = Tool(3, 5, True, False, True, True, True)
                         elif tool_to_add == 4:
                             self.tool_locations[(col, row)] = Tool(4, 0, True, False, False, False, True)
                         elif tool_to_add == 5:
@@ -595,7 +595,7 @@ class Render:
             "0_2.1_mouse_sprite" : self.spritesheets["player_2"].get_image(1, 48, 48, SQUARE_SIZE/48),
             "0_3.1_mouse_sprite" : self.spritesheets["magnet"].get_image(1, 48, 48, SQUARE_SIZE/60, "black"),
             "2_mouse_sprite": self.spritesheets["bomb"].get_image(0, 48, 48, SQUARE_SIZE/48),
-            "3_mouse_sprite" : pygame.transform.scale(pygame.image.load("./assets/images/floating-tile-sprite.png"), (SQUARE_SIZE * 0.8, SQUARE_SIZE * 0.8)),
+            "3_mouse_sprite" : self.spritesheets["glass"].get_image(0, 48, 48, SQUARE_SIZE/48),
             "4_mouse_sprite" : self.spritesheets["magnet"].get_image(2, 48, 48, SQUARE_SIZE/60),
             "5_mouse_sprite" : self.spritesheets["freeze"].get_image(0, 48, 48, SQUARE_SIZE/60)
         }
@@ -681,6 +681,9 @@ class Render:
                 elif current_tile_id == 3:
                     pygame.draw.circle(self.window, background_colour, disc_pos_circle, int(SQUARE_SIZE / 2.5))
                     self.window.blit(self.spritesheets["magnet"].get_image(1, 48, 48, SQUARE_SIZE/60, "black" if bombed else None), disc_pos)
+                elif current_tile_id == 5:
+                    pygame.draw.circle(self.window, background_colour, disc_pos_circle, int(SQUARE_SIZE / 2.5))
+                    self.window.blit(self.spritesheets["glass"].get_image(0, 48, 48, SQUARE_SIZE/48, "black" if bombed else None), disc_pos)
                 elif current_tile_id == 0:
                     pygame.draw.circle(self.window, background_colour, disc_pos_circle, int(SQUARE_SIZE / 2.5))
                 if (c, ROW_COUNT - r - 1) in self.tool_locations and VISIBLE_TOOLS:
