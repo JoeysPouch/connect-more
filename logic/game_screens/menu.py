@@ -21,9 +21,6 @@ big_font = pygame.font.Font("assets/other/pixel_game_font.otf", 50)
 small_font = pygame.font.Font("assets/other/pixel_game_font.otf", 35)
 tiny_font = pygame.font.Font("assets/other/pixel_game_font.otf", 20)
 
-#big_font = pygame.font.SysFont("arialblack", 35)
-#small_font = pygame.font.SysFont("arialblack", 25)
-#tiny_font = pygame.font.SysFont("arialblack", 15)
 TEXT_COL = (255, 255, 255)
 BUTTON_COL = (210, 105, 30)
 BACKGROUND_COLOUR = (244,164,96)
@@ -36,16 +33,16 @@ window.fill(BACKGROUND_COLOUR)
 
 
 class Button:
-    def __init__(self, name, location, status, appearance, tickable, font=big_font, text_margin=(12,5)):
+    def __init__(self, name, location, status, appearance, type, font=big_font, text_margin=(12,5)):
         self.name = name
         self.location = location
         self.status = status
         self.appearance = appearance
-        self.tickable = tickable
+        self.type = type
         self.dragging = False
-        self.is_slider = appearance == "slider"
         self.font = font
         self.text_margin = text_margin
+        self.rect = pygame.Rect(*location)
 
     def slider(self, event, rows, columns):
         
@@ -72,20 +69,27 @@ class Button:
     def action_from_click(self):
         self.status = not self.status
 
-        if self.name == "Title":
-            pass
+        # Connect 4/5/6 select
         if self.name == "Connect 4":
+            if not all([self.status, connect5_button.status, connect4_button.status]):
+                self.status = True
             config_variables["number_to_win"] = 4
             connect5_button.status = False
             connect6_button.status = False
         if self.name == "Connect 5":
+            if not all([self.status, connect4_button.status, connect6_button.status]):
+                self.status = True
             config_variables["number_to_win"] = 5
             connect4_button.status = False
             connect6_button.status = False       
         if self.name == "Connect 6":
+            if not all([self.status, connect4_button.status, connect5_button.status]):
+                self.status = True
             config_variables["number_to_win"] = 6
             connect4_button.status = False
             connect5_button.status = False
+        
+        # Powerup select
         if self.name == "Bomb":
             if self.status:
                 config_variables["eligible_tools"].append(2)
@@ -106,32 +110,55 @@ class Button:
                 config_variables["eligible_tools"].append(5)
             else:
                 config_variables["eligible_tools"].remove(5)
+            
+        # Lines to win select
         if self.name == "1 Set":
+            if not all([set1_button.status, set2_button.status, set3_button.status]):
+                self.status = True
             config_variables["sets_to_win"] = 1
             set2_button.status = False
             set3_button.status = False
         if self.name == "2 Sets":
+            if not all([set1_button.status, set2_button.status, set3_button.status]):
+                self.status = True
             config_variables["sets_to_win"] = 2
             set1_button.status = False
             set3_button.status = False
         if self.name == "3 Sets":
+            if not all([set1_button.status, set2_button.status, set3_button.status]):
+                self.status = True
             config_variables["sets_to_win"] = 3
             set1_button.status = False
             set2_button.status = False
+        
+        # Powerup frequency select
         if self.name == "Low Frequency":
-            config_variables["tool_chance"] = 0.1
-            medium_freq_button.status = False
-            high_freq_button.status = False
+            if self.status:
+                config_variables["tool_chance"] = 0.1
+                medium_freq_button.status = False
+                high_freq_button.status = False
+            else:
+                config_variables["tool_chance"] = 0
         if self.name == "Medium Frequency":
-            config_variables["tool_chance"] = 0.15
-            low_freq_button.status = False
-            high_freq_button.status = False
+            if self.status:
+                config_variables["tool_chance"] = 0.15
+                low_freq_button.status = False
+                high_freq_button.status = False
+            else:
+                config_variables["tool_chance"] = 0
         if self.name == "High Frequency":
-            config_variables["tool_chance"] = 0.20
-            low_freq_button.status = False
-            medium_freq_button.status = False
+            if self.status:
+                config_variables["tool_chance"] = 0.20
+                low_freq_button.status = False
+                medium_freq_button.status = False
+            else:
+                config_variables["tool_chance"] = 0
+        
+        # Bullet toggle
         if self.name == "Bullet Mode":
             config_variables["bullet_mode"] = not config_variables["bullet_mode"]
+
+        # Visibility toggle
         if self.name == "Items Visible":
             config_variables["visible_tools"] = not config_variables["visible_tools"]
 
@@ -139,6 +166,12 @@ class Button:
             config_variables["square_size"] = min(500 / config_variables["row_count"], 1000 / config_variables["column_count"])
             config_variables["start_game"] = True
             print(config_variables)
+
+    def on_hover(self):
+        if self.type in ("option", "toggle"):
+            pygame.draw.rect(window, TEXT_COL, (self.location[0] - 3, self.location[1] - 3, self.location[2] + 6, self.location[3] + 6), 3, 5)
+        if self.type == "start":
+            pygame.draw.rect(window, TEXT_COL, (self.location[0] - 3, self.location[1] - 3, self.location[2] + 6, self.location[3] + 6), 4, 5)
     
 
 class Info:
@@ -156,6 +189,7 @@ class Info:
         pygame.draw.line(window, TEXT_COL, (self.x - 1, self.y - 1), (self.x - 1, self.y + 6), 2)
 
     def on_hover(self):
+        print("hovering!")
         x = self.x if self.x + self.width + 3 < SCREEN_WIDTH else self.x - self.width
         y = self.y if self.y + self.height + 3 < SCREEN_HEIGHT else self.y - self.height
         pygame.draw.rect(window, (120, 52, 25), (x, y, self.width, self.height))
@@ -166,36 +200,36 @@ class Info:
             buffer += 18
 
 
-#Buttons
+# Instantiating buttons
 
-title_button = Button("Title", [165, 15, 390, 70], True, "C   NNECT M   RE", False, giant_font, (12, 5))
+title_button = Button("Title", [165, 15, 390, 70], True, "C   NNECT M   RE", "title", giant_font, (12, 5))
 
-start_button = Button("Start", [260, 650, 200, 60], False, "START", False, text_margin=(45, 7))
+start_button = Button("Start", [260, 650, 200, 60], False, "START", "start", text_margin=(45, 7))
 
-bullet_mode = Button("Bullet Mode", [565, 380, 40, 40], False, "", True, small_font)
+bullet_mode = Button("Bullet Mode", [565, 380, 40, 40], False, None, "toggle", small_font)
 
-connect4_button = Button("Connect 4", [50, 380, 40, 40], True, "4", True, small_font)
-connect5_button = Button("Connect 5", [115, 380, 40, 40], False, "5", True, small_font)
-connect6_button = Button("Connect 6", [180, 380, 40, 40], False, "6", True, small_font)
+connect4_button = Button("Connect 4", [50, 380, 40, 40], True, "4", "option", small_font)
+connect5_button = Button("Connect 5", [115, 380, 40, 40], False, "5", "option", small_font)
+connect6_button = Button("Connect 6", [180, 380, 40, 40], False, "6", "option", small_font)
 
-bomb_button = Button("Bomb", [60, 505, 72, 72], False, "./assets/images/bomb-sprite.png", True)
-floating_tile_button = Button("Floating Tile", [140, 505, 72, 72], False, "./assets/images/floating-tile-sprite.png", True)
-magnet_button = Button("Magnet", [60, 585, 72, 72], False, "./assets/images/magnet-sprite.png", True)
-freeze_button = Button("Freeze", [140, 585, 72, 72], False, "./assets/images/freeze-sprite.png", True)
-visible_tools = Button("Items Visible", [475, 570, 40, 40], True, "", True)
+bomb_button = Button("Bomb", [60, 505, 72, 72], False, "./assets/images/bomb-sprite.png", "option")
+floating_tile_button = Button("Floating Tile", [140, 505, 72, 72], False, "./assets/images/floating-tile-sprite.png", "option")
+magnet_button = Button("Magnet", [60, 585, 72, 72], False, "./assets/images/magnet-sprite.png", "option")
+freeze_button = Button("Freeze", [140, 585, 72, 72], False, "./assets/images/freeze-sprite.png", "option")
+visible_tools = Button("Items Visible", [475, 570, 40, 40], True, None, "toggle")
 
-set1_button = Button("1 Set", [280, 380, 40, 40], True, "1", True, small_font)
-set2_button = Button("2 Sets", [345, 380, 40, 40], False, "2", True, small_font)
-set3_button = Button("3 Sets", [410, 380, 40, 40], False, "3", True, small_font)
+set1_button = Button("1 Set", [280, 380, 40, 40], True, "1", "option", small_font)
+set2_button = Button("2 Sets", [345, 380, 40, 40], False, "2", "option", small_font)
+set3_button = Button("3 Sets", [410, 380, 40, 40], False, "3", "option", small_font)
 
-low_freq_button = Button("Low Frequency", [475, 500, 40, 40], False, "L", True, small_font)
-medium_freq_button = Button("Medium Frequency", [530, 500, 40, 40], False, "M", True, small_font, (10, 5))
-high_freq_button = Button("High Frequency", [585, 500, 40, 40], False, "H", True, small_font)
+low_freq_button = Button("Low Frequency", [475, 500, 40, 40], False, "L", "option", small_font)
+medium_freq_button = Button("Medium Frequency", [530, 500, 40, 40], False, "M", "option", small_font, (10, 5))
+high_freq_button = Button("High Frequency", [585, 500, 40, 40], False, "H", "option", small_font)
 
-rows_label = Button("Rows", [75, 220, 220, 30], True, None, False)
-columns_label = Button("Columns", [400, 220, 220, 30], True, None, False)
-row_slider = Button("Row Slider", [75, 210, 30, 50], False, "slider", False)
-column_slider = Button("Column Slider", [400, 210, 30, 50], False, "slider", False)
+rows_label = Button("Rows", [75, 220, 220, 30], True, None, "slider_label")
+columns_label = Button("Columns", [400, 220, 220, 30], True, None, "slider_label")
+row_slider = Button("Row Slider", [75, 210, 30, 50], False, None, "slider")
+column_slider = Button("Column Slider", [400, 210, 30, 50], False, None, "slider")
 
 buttons = [
     title_button,
@@ -245,7 +279,7 @@ def clicks(event):
         rect = pygame.Rect(button.location)
         if rect.collidepoint(event.pos[0], event.pos[1]):
             button.action_from_click()
-            print(button.name)
+            print(button.name, button.status, button.rect)
 
 def run_menu():
     pygame.mixer.music.load(f'./assets/sound/menu_music.wav')
@@ -259,24 +293,45 @@ def run_menu():
         #Render
         window.fill(BACKGROUND_COLOUR)
         for button in buttons:
+            # draws default state for all buttons
             pygame.draw.rect(window, BUTTON_COL, button.location)
             pygame.draw.rect(window, (120, 52, 25), (button.location[0] - 3, button.location[1] - 3, button.location[2] + 6, button.location[3] + 6), 3, 5)
+            
+            # blits text/images onto buttons 
             if isinstance(button.appearance, str):
                 if button.appearance[-3:] == "png":
                     draw_image(button.appearance, BUTTON_COL, button.location[0], button.location[1], 48, 48, 1.5)
-                
-                elif button.is_slider:
-                    pygame.draw.rect(window, (120, 52, 25), (button.location))
                 else:
                     draw_text(button.appearance, button.font, TEXT_COL, button.location[0] + button.text_margin[0], button.location[1] + button.text_margin[1])
+            
+            # draws sliders
+            if button.type == "slider":
+                pygame.draw.rect(window, (120, 52, 25), (button.location))
 
-                if button.status and button.tickable:
+            # changes appearance of toggle buttons based on state
+            if button.type == "toggle":
+                if button.status:
                     overlay = pygame.Surface((button.location[2], button.location[3]), pygame.SRCALPHA)
-                    overlay.fill((0, 0, 0, 100))
+                    # overlay.fill((0, 0, 0, 70))
                     window.blit(overlay, (button.location[0], button.location[1]))
-                    pygame.draw.line(window, (0, 200, 0), (button.location[0], button.location[1] + button.location[3]/2), (button.location[0] + button.location[2]/3, button.location[1] + button.location[3]), 10)
-                    pygame.draw.line(window, (0, 200, 0), (button.location[0] + button.location[2]/3, button.location[1] + button.location[3]), (button.location[0] + button.location[2], button.location[1]), 10)
+                    pygame.draw.rect(window, TEXT_COL, (button.location[0]+button.location[2]/4, button.location[1]+button.location[3]/4,
+                                                            button.location[2]/2, button.location[3]/2), border_radius=2)
+
+            # changes appearance of option buttons based on state        
+            if button.type == "option":
+                # gives selected buttons a white outline
+                if button.status:
+                    pygame.draw.rect(window, TEXT_COL, (button.location[0] - 3, button.location[1] - 3, button.location[2] + 6, button.location[3] + 6), 4, 5)
+                # greys out deselected buttons
+                else:
+                    overlay = pygame.Surface((button.location[2], button.location[3]), pygame.SRCALPHA)
+                    overlay.fill((0, 0, 0, 70))
+                    window.blit(overlay, (button.location[0], button.location[1]))
+
+            if button.rect.collidepoint(pygame.mouse.get_pos()):
+                button.on_hover()           
                 
+        # embellishing title
         pygame.draw.circle(window, (255, 0, 0), (225, 52), 15)
         pygame.draw.circle(window, (120, 52, 25), (225, 52), 15, 2)
         pygame.draw.circle(window, (255, 255, 0), (469, 52), 15)
@@ -289,7 +344,7 @@ def run_menu():
         draw_text(f"Columns: {config_variables['column_count']}", small_font, TEXT_COL, 440, 165)
         draw_text("Rules", big_font, TEXT_COL, 45, 280)
         draw_text("Connect", small_font, TEXT_COL, 45, 335)
-        draw_text("Sets to Win", small_font, TEXT_COL, 280, 335)
+        draw_text("Lines to Win", small_font, TEXT_COL, 280, 335)
         draw_text("Bullet Mode", small_font, TEXT_COL, 500, 335)
         draw_text("Powerups", big_font, TEXT_COL, 45, 440)
         draw_text("Frequency", small_font, TEXT_COL, 315, 500)
@@ -307,7 +362,7 @@ def run_menu():
                 exit()
 
             for button in buttons:
-                if button.is_slider:
+                if button.type == "slider":
                     config_variables["row_count"], config_variables["column_count"] = button.slider(event, config_variables["row_count"], config_variables["column_count"])
 
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -323,4 +378,3 @@ def start_game():
     return config_variables["start_game"]
 
 run_menu()
-
