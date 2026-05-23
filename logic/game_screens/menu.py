@@ -42,6 +42,7 @@ class Button:
         self.dragging = False
         self.font = font
         self.text_margin = text_margin
+        self.rect = pygame.Rect(*location)
 
     def slider(self, event, rows, columns):
         
@@ -165,6 +166,12 @@ class Button:
             config_variables["square_size"] = min(500 / config_variables["row_count"], 1000 / config_variables["column_count"])
             config_variables["start_game"] = True
             print(config_variables)
+
+    def on_hover(self):
+        if self.type in ("option", "toggle"):
+            pygame.draw.rect(window, TEXT_COL, (self.location[0] - 3, self.location[1] - 3, self.location[2] + 6, self.location[3] + 6), 3, 5)
+        if self.type == "start":
+            pygame.draw.rect(window, TEXT_COL, (self.location[0] - 3, self.location[1] - 3, self.location[2] + 6, self.location[3] + 6), 4, 5)
     
 
 class Info:
@@ -182,6 +189,7 @@ class Info:
         pygame.draw.line(window, TEXT_COL, (self.x - 1, self.y - 1), (self.x - 1, self.y + 6), 2)
 
     def on_hover(self):
+        print("hovering!")
         x = self.x if self.x + self.width + 3 < SCREEN_WIDTH else self.x - self.width
         y = self.y if self.y + self.height + 3 < SCREEN_HEIGHT else self.y - self.height
         pygame.draw.rect(window, (120, 52, 25), (x, y, self.width, self.height))
@@ -271,7 +279,7 @@ def clicks(event):
         rect = pygame.Rect(button.location)
         if rect.collidepoint(event.pos[0], event.pos[1]):
             button.action_from_click()
-            print(button.name)
+            print(button.name, button.status, button.rect)
 
 def run_menu():
     pygame.mixer.music.load(f'./assets/sound/menu_music.wav')
@@ -318,7 +326,10 @@ def run_menu():
                 else:
                     overlay = pygame.Surface((button.location[2], button.location[3]), pygame.SRCALPHA)
                     overlay.fill((0, 0, 0, 70))
-                    window.blit(overlay, (button.location[0], button.location[1]))            
+                    window.blit(overlay, (button.location[0], button.location[1]))
+
+            if button.rect.collidepoint(pygame.mouse.get_pos()):
+                button.on_hover()           
                 
         # embellishing title
         pygame.draw.circle(window, (255, 0, 0), (225, 52), 15)
