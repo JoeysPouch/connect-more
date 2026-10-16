@@ -223,7 +223,7 @@ buttons = [
 
 bullet_info = Info(680, 351, 160, 65, "Fast-paced mode", "with a 30 second", "chess clock!")
 bomb_info = Info(120, 565, 160, 45, "Explode the other", "player's piece!")
-magnet_info = Info(120, 645, 180, 65, "Move the other" ,"player's piece and", "replace it with junk!")
+magnet_info = Info(120, 645, 190, 45, "Move any other piece", "and place the magnet!")
 floating_info = Info(200, 565, 190, 45, "Place a floating glass", "tile to catch pieces!")
 freeze_info = Info(200, 645, 140, 45, "Freeze a column", "for 3 turns!")
 infos = [bullet_info, bomb_info, magnet_info, floating_info, freeze_info]
