@@ -4,7 +4,7 @@ config_variables = {
     "row_count": 6,
     "column_count": 6,
     "square_size": 100,
-    "eligible_tools": [0],
+    "eligible_tools": [],
     "number_to_win": 4,
     "sets_to_win": 1,
     "bullet_mode": False,
@@ -119,15 +119,15 @@ class Button:
             set1_button.status = False
             set2_button.status = False
         if self.name == "Low Frequency":
-            config_variables["tool_chance"] = 0.1
+            config_variables["tool_chance"] = 0.05
             medium_freq_button.status = False
             high_freq_button.status = False
         if self.name == "Medium Frequency":
-            config_variables["tool_chance"] = 0.15
+            config_variables["tool_chance"] = 0.10
             low_freq_button.status = False
             high_freq_button.status = False
         if self.name == "High Frequency":
-            config_variables["tool_chance"] = 0.20
+            config_variables["tool_chance"] = 0.18
             low_freq_button.status = False
             medium_freq_button.status = False
         if self.name == "Bullet Mode":

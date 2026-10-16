@@ -55,20 +55,45 @@ class Game:
         self.tool_locations = {}
 
         if len(ELIGIBLE_TOOLS) > 0:
-            for row in range(1, ROW_COUNT):
-                for col in range(0, COLUMN_COUNT):
-                    if random.random() < TOOL_CHANCE * (1 - row / ROW_COUNT):
-                        tool_to_add = random.choice(ELIGIBLE_TOOLS)
-                        if tool_to_add == 1:
-                            self.tool_locations[(col, row)] = Tool(1, 4, True, False, False, True, False)
-                        elif tool_to_add == 2:
-                            self.tool_locations[(col, row)] = Tool(2, 3, True, True, True, False, True)
-                        elif tool_to_add == 3:
-                            self.tool_locations[(col, row)] = Tool(3, 5, True, False, True, True, True)
-                        elif tool_to_add == 4:
-                            self.tool_locations[(col, row)] = Tool(4, 0, True, False, False, False, True)
-                        elif tool_to_add == 5:
-                            self.tool_locations[(col, row)] = Tool(5, -1, True, False, False, False, True)
+            min_powerups = round(ROW_COUNT * COLUMN_COUNT * TOOL_CHANCE)
+            max_powerups = round(ROW_COUNT * COLUMN_COUNT * (TOOL_CHANCE * 1.5))
+            powerups_to_add = random.randrange(min_powerups, max_powerups + 1)
+            row_weights = np.array(range(ROW_COUNT - 1, 0, -1))
+            power_up_coords = []
+
+            while len(set(power_up_coords)) < powerups_to_add:
+                k = powerups_to_add - len(set(power_up_coords))
+                cols = random.choices(range(COLUMN_COUNT), k=k)
+                rows = random.choices(range(1, ROW_COUNT), row_weights, k=k)
+                for i in range(k):
+                    power_up_coords.append((cols[i], rows[i]))
+
+            power_up_coords = set(power_up_coords)
+
+            for coords in power_up_coords:
+                eligible_tools_temp = ELIGIBLE_TOOLS.copy()
+                if 3 in ELIGIBLE_TOOLS:
+                    if coords[1] > ROW_COUNT / 3:
+                        eligible_tools_temp.remove(3)
+                    else:
+                        eligible_tools_temp.append(3)
+                if 5 in ELIGIBLE_TOOLS:
+                    if coords[1] < ROW_COUNT / 3:
+                        eligible_tools_temp.remove(5)
+                    else:
+                        eligible_tools_temp.append(5)
+
+                tool_to_add = random.choice(eligible_tools_temp)
+                if tool_to_add == 1:
+                    self.tool_locations[coords] = Tool(1, 4, True, False, False, True, False)
+                elif tool_to_add == 2:
+                    self.tool_locations[coords] = Tool(2, 3, True, True, True, False, True)
+                elif tool_to_add == 3:
+                    self.tool_locations[coords] = Tool(3, 5, True, False, True, True, True)
+                elif tool_to_add == 4:
+                    self.tool_locations[coords] = Tool(4, 0, True, False, False, False, True)
+                elif tool_to_add == 5:
+                    self.tool_locations[coords] = Tool(5, -1, True, False, False, False, True)
 
         # Main Game Audio Setup
         if not BULLET_MODE:
