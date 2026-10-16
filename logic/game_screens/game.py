@@ -58,13 +58,23 @@ class Game:
             min_powerups = round(ROW_COUNT * COLUMN_COUNT * TOOL_CHANCE)
             max_powerups = round(ROW_COUNT * COLUMN_COUNT * (TOOL_CHANCE * 1.5))
             powerups_to_add = random.randrange(min_powerups, max_powerups + 1)
-            row_weights = np.array(range(ROW_COUNT - 1, 0, -1))
+            if ELIGIBLE_TOOLS == [3]:
+                row_range = range(1, int(ROW_COUNT / 3))
+                row_weights = np.array(range(int(ROW_COUNT / 3) - 1, 0, -1))
+                powerups_to_add = min(powerups_to_add, (int(ROW_COUNT / 3) - 1) * COLUMN_COUNT)
+            elif ELIGIBLE_TOOLS == [5]:
+                row_range = range(int(ROW_COUNT / 3) + 1, ROW_COUNT)
+                row_weights = np.array(range(ROW_COUNT - 1, int(ROW_COUNT / 3), -1))
+                powerups_to_add = min(powerups_to_add, (ROW_COUNT - int(ROW_COUNT / 3)) * COLUMN_COUNT)
+            else:
+                row_range = range(1, ROW_COUNT)
+                row_weights = np.array(range(ROW_COUNT - 1, 0, -1))
             power_up_coords = []
 
             while len(set(power_up_coords)) < powerups_to_add:
                 k = powerups_to_add - len(set(power_up_coords))
                 cols = random.choices(range(COLUMN_COUNT), k=k)
-                rows = random.choices(range(1, ROW_COUNT), row_weights, k=k)
+                rows = random.choices(row_range, row_weights, k=k)
                 for i in range(k):
                     power_up_coords.append((cols[i], rows[i]))
 
